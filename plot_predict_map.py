@@ -203,6 +203,7 @@ def plot_pga_map(
         plt.close(fig)
     else:
         plt.show()
+    return fig, ax_map
 
 
 def warning_map(
@@ -229,7 +230,7 @@ def warning_map(
     )
     predict_filter = [true_not_warn_filter, loss_warn_filter, wrong_warn_filter]
 
-    title = f"EQ_ID: {EQ_ID}, {sec} sec performance, warning threshold: VI"
+    title = f"EQ_ID: {EQ_ID}, {sec} sec performance, warning threshold: IV"
     src_crs = ccrs.PlateCarree()
     fig, ax_map = plt.subplots(subplot_kw={"projection": src_crs}, figsize=(7, 7))
 
@@ -363,10 +364,6 @@ def warning_map(
     ax_map.legend()
     if title:
         ax_map.set_title(title)
-    else:
-        ax_map.set_title(
-            f"EQ_ID: {EQ_ID}, {sec} sec performance, warning threshold: VI"
-        )
     cbar = plt.colorbar(warn_sta, extend="both")
     cbar.set_label("Warning time (sec)")
 
@@ -383,7 +380,7 @@ def true_predicted(
     ax=None,
     axis_fontsize=20,
     point_size=2,
-    target="y",
+    target="pga",
 ):
     if ax is None:
         fig = plt.figure(figsize=(10, 10))
@@ -428,10 +425,25 @@ def true_predicted(
         )
 
     intensity = TaiwanIntensity()
-
-    ax.hlines(intensity.pga[3:-1], limits[0], intensity.pga[3:-1], linestyles="dotted")
-    ax.vlines(intensity.pga[3:-1], limits[0], intensity.pga[3:-1], linestyles="dotted")
-    for i, label in zip(intensity.pga_ticks[2:-2], intensity.label[2:-2]):
+    if target == "pga":
+        intensity_threshold = intensity.pga
+        ticks = intensity.pga_ticks
+    elif target == "pgv":
+        intensity_threshold = intensity.pgv
+        ticks = intensity.pgv_ticks
+    ax.hlines(
+        intensity_threshold[3:-1],
+        limits[0],
+        intensity_threshold[3:-1],
+        linestyles="dotted",
+    )
+    ax.vlines(
+        intensity_threshold[3:-1],
+        limits[0],
+        intensity_threshold[3:-1],
+        linestyles="dotted",
+    )
+    for i, label in zip(ticks[2:-2], intensity.label[2:-2]):
         ax.text(i, limits[0], label, va="bottom", fontsize=axis_fontsize - 7)
 
     ax.set_xlabel(f"ture_{target} log(m/s^2)", fontsize=axis_fontsize)
@@ -466,6 +478,7 @@ def warning_time_hist(
     sampling_rate=200,
     first_pick_sec=5,
 ):
+
     prediction = pd.merge(prediction, catalog, how="left", on="EQ_ID")
     warning_time_filter = (
         prediction["pga_time"] > (first_pick_sec + mask_after_sec) * sampling_rate

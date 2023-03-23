@@ -82,7 +82,7 @@ event = event.assign(
     longitude=event["lon"] + event["lon_minute"] / 60,
 )
 
-plot_pga_map(
+fig, ax = plot_pga_map(
     trace_info=event_prediction,
     eventmeta=event,
     true_pga=event_prediction["answer"],
@@ -92,8 +92,10 @@ plot_pga_map(
     grid_method="linear",
     pad=100,
 )
+# fig.savefig(f"{path}/precision and warning time map/eq_id {EQ_ID}/{mask_after_sec} sec intensity map.png",
+#             dpi=300)
 
-warning_map(
+fig, ax = warning_map(
     trace_info=event_prediction,
     eventmeta=event,
     EQ_ID=EQ_ID,
@@ -101,18 +103,25 @@ warning_map(
     pga_threshold=pga_threshold,
 )
 
-correct_warning_with_epidist(
+# fig.savefig(f"{path}/precision and warning time map/eq_id {EQ_ID}/{mask_after_sec} sec warning map.png",
+#             dpi=300)
+
+fig, ax = correct_warning_with_epidist(
     event_prediction=event_prediction, mask_after_sec=mask_after_sec
 )
 
-warning_time_hist(
+# fig.savefig(f"{path}/precision and warning time map/eq_id {EQ_ID}/{mask_after_sec} sec epidist vs time.png",
+#             dpi=300)
+
+fig, ax = warning_time_hist(
     prediction,
     catalog,
     EQ_ID=EQ_ID,
     mask_after_sec=mask_after_sec,
     warning_mag_threshold=4,
 )
-
+# fig.savefig(f"{path}/precision and warning time map/eq_id {EQ_ID}/{mask_after_sec} sec warning stations hist.png",
+#             dpi=300)
 
 fig, ax = true_predicted(
     y_true=prediction[prediction["EQ_ID"] == EQ_ID]["answer"],
@@ -132,3 +141,5 @@ ax.scatter(
     s=70,
     c="red",
 )
+# fig.savefig(f"{path}/precision and warning time map/eq_id {EQ_ID}/{mask_after_sec} sec true vs predict.png",
+#             dpi=300)

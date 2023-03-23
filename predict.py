@@ -66,6 +66,7 @@ class predict_dataset(Dataset):
             pga_labels = []
             p_picks = []
             for i, eventID in enumerate(specific_index):  # trace loop
+
                 waveform = f["data"][str(eventID[0])]["traces"][eventID[1]]
                 p_pick = f["data"][str(eventID[0])]["p_picks"][eventID[1]]
                 if i == 0:
