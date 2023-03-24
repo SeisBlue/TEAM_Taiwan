@@ -11,13 +11,13 @@ Reference: Münchmeyer et al.,2021 (https://academic.oup.com/gji/article/225/1/6
 
 `afile.py`: classify events and records to csv file
 
-`station location dataset.py`: merge TSMIP station locations
+`station_location_dataset.py`: merge TSMIP station locations
 
-`catalog, records cleaning.py`: data cleaning (broken data, double events etc.)
+`catalog_records_cleaning.py`: data cleaning (broken data, double events etc.)
 
-`picking,label.py`: main files to picking and label(PGA or PGV)
+`picking_label.py`: main files to picking and label(PGA or PGV)
 
-`traces cutting.py`: summarize catalog and waveforms to hdf5 file
+`traces_cutting.py`: summarize catalog and waveforms to hdf5 file
 
 ## Training model
 
@@ -25,11 +25,11 @@ Reference: Münchmeyer et al.,2021 (https://academic.oup.com/gji/article/225/1/6
 
 `multiple_sta_dataset.py`: the class of pytorch dataset
 
-`multi-station training.py`: main training file
+`multi_station_training.py`: main training file
 
 ## Prediction
 
-`predict_new.py` `confusion matrix multi station.py` `plot_predict_map.py` `intensity map.py`
+`predict_new.py` `confusion_matrix_multi_station.py` `plot_predict_map.py` `intensity_map.py`
 
 Calculate precision, recall, F1 score and calculate warthquake warning time
 
