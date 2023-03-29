@@ -5,10 +5,12 @@ mlflow
 numpy
 obspy
 pandas
-pytorch
 scikit-learn
 scipy
 seaborn
 shapely
+torch
+torchsampler
+torchsummary
 tqdm
 wordcloud
