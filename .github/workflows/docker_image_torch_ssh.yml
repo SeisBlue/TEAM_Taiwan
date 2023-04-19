@@ -3,7 +3,7 @@ name: Docker Image Team Taiwan Torch SSH
 on:
   push:
     paths:
-      - '.github/workflows/docker_image_torch.yml'
+      - '.github/workflows/docker_image_torch_ssh.yml'
       - 'docker/Dockerfile.ssh'
       - 'requirements.txt'
 
