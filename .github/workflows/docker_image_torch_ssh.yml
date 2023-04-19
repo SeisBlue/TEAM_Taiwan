@@ -8,7 +8,7 @@ on:
       - 'requirements.txt'
 
 env:
-  DOCKER_REPO: seisblue/team_taiwan_torch
+  DOCKER_REPO: seisblue/team_taiwan_torch_ssh
 
 jobs:
   Build_Docker_Image:
