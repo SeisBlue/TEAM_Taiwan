@@ -42,4 +42,4 @@ jobs:
         context:
         push: true
         file: docker/Dockerfile
-        tags: ${{ steps.meta.outputs.tags }}, ${{ env.DOCKER_REPO }}:${{ github.sha | cut -c1-7 }}
+        tags: ${{ steps.meta.outputs.tags }}, ${{ env.DOCKER_REPO }}:${{ github.sha }}
