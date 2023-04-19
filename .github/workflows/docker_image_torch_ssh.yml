@@ -1,4 +1,4 @@
-name: Docker Image Team Taiwan Torch
+name: Docker Image Team Taiwan Torch SSH
 
 on:
   push:
