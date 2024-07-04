@@ -7,7 +7,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y; \
     apt-get install -y \
     curl git htop sudo vim \
-    python3-dev python3-pip libgeos-dev
+    python3-dev python3-pip libgeos-dev \
+    gmt gmt-dcw gmt-gshhg ghostscript gdal-bin graphicsmagick ffmpeg
 
 # Python package install
 COPY docker/requirements.txt /tmp/
