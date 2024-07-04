@@ -3,12 +3,12 @@ name: Docker Image Team Taiwan Torch
 on:
   push:
     paths:
-      - '.github/workflows/docker_image_torch.yml'
+      - '.github/workflows/docker_image_TTSAM.yml'
       - 'docker/Dockerfile'
-      - 'requirements.txt'
+      - 'docker/requirements.txt'
 
 env:
-  DOCKER_REPO: seisblue/team_taiwan_torch
+  DOCKER_REPO: seisblue/ttsam
 
 jobs:
   Build_Docker_Image:
