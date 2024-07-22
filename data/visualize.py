@@ -12,6 +12,7 @@ import torch
 
 
 class Plot_Train_Test_Data:
+    @staticmethod
     def event_histogram(
         train_catalog=None, test_catalog=None, key=None, xlabel=None, title=None
     ):
@@ -25,7 +26,7 @@ class Plot_Train_Test_Data:
         if title:
             ax.set_title(f"{title}")
         return fig, ax
-
+    @staticmethod
     def event_map(train_catalog=None, test_catalog=None, title=None):
         src_crs = ccrs.PlateCarree()
         fig, ax_map = plt.subplots(subplot_kw={"projection": src_crs}, figsize=(7, 7))
@@ -75,7 +76,7 @@ class Plot_Train_Test_Data:
             ax_map.set_title(f"{title}")
         ax_map.legend()
         return fig, ax_map
-
+    @staticmethod
     def pga_histogram(traces_catalog=None, test_year=None, title=None):
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.hist(
@@ -112,6 +113,7 @@ class Plot_Train_Test_Data:
 
 
 class Increase_High_Data_Test:
+    @staticmethod
     def load_dataset_into_list(
         data_path, oversample_rate=1, bias_to_close_station=False
     ):
@@ -141,7 +143,7 @@ class Increase_High_Data_Test:
             ).tolist()
             origin_PGA.extend(tmp_pga)
         return origin_PGA
-
+    @staticmethod
     def plot_pga_histogram(
         bias_closed_sta_PGA=None,
         oversampled_PGA=None,

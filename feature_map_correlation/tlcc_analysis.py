@@ -5,7 +5,7 @@ from scipy.stats import pearsonr
 
 
 class Calculator:
-        
+    @staticmethod
     def first_occurrences_indices(b):
         first_indices = {}  # 用字典来存储不同数字的第一次出现的索引
 
@@ -15,7 +15,7 @@ class Calculator:
 
         return first_indices
 
-
+    @staticmethod
     def normalize_to_zero_one(arr):
         # 找到数组的最小值和最大值
         min_val = arr.min()
@@ -26,7 +26,7 @@ class Calculator:
 
         return normalized_arr
 
-
+    @staticmethod
     def calculate_tlcc(time_series1, time_series2, max_delay):
         """
         計算TLCC（時滯交叉相關性）以及相應的時間延遲和TLCC值。
@@ -63,7 +63,7 @@ class Calculator:
         return delay, tlcc_values
 
 class Plotter:
-
+    @staticmethod
     def plot_waveform(waveform, eq_id, input_station,index, output_path=None):
         fig, ax = plt.subplots(3, 1, figsize=(14, 7))
         for j in range(len(ax)):
@@ -73,7 +73,7 @@ class Plotter:
             fig.savefig(f"{output_path}/3 channel input waveform{index+1}.png", dpi=300)
         return fig, ax
 
-
+    @staticmethod
     def plot_correlation_curve_with_shift_time(
         delay_values, tlcc_values, eq_id, attribute, index, mask_after_sec, output_path=None
     ):
@@ -92,7 +92,7 @@ class Plotter:
             )
         return fig, ax
 
-
+    @staticmethod
     def plot_attribute_with_feature_map(
         attribute_arr,
         resized_feature_map,
@@ -148,7 +148,7 @@ class Plotter:
             )
         return fig, ax
 
-
+    @staticmethod
     def plot_correlation_hist(
         attribute_dict, attribute, TLCC_mean, TLCC_std, mask_after_sec, output_path=None
     ):
@@ -179,7 +179,7 @@ class Plotter:
             )
         return fig, ax
 
-
+    @staticmethod
     def plot_time_shifted_with_correlation(
         attribute_dict, attribute, TLCC_mean, TLCC_std, mask_after_sec, output_path=None
     ):
@@ -204,7 +204,7 @@ class Plotter:
             )
         return fig, ax
 
-
+    @staticmethod
     def plot_time_shifted_with_hist(
         attribute_dict, attribute, delay_mean, delay_std, mask_after_sec, output_path=None
     ):
@@ -230,7 +230,7 @@ class Plotter:
             )
         return fig, ax
 
-
+    @staticmethod
     def correlation_with_attributes_heat_map(data, attributes=None, output_path=None):
         fig, ax = plt.subplots()
         sns.heatmap(data, annot=True, cmap="Reds")
