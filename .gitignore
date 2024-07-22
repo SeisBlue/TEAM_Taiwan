@@ -2,19 +2,23 @@
 /__pycache__
 .vscode
 
+!*/.gitkeep
 #waveform and catalog
 data/*
+!data/*/.gitkeep
 !data/*.py
-/paper image
+
+!/paper_image/.gitkeep
+/paper_image
 *.zip
 
 #mlflow
-/mlruns
+/mlruns/*
 
 #training
 model/*
 !model/*.py
-/predict
+/predict/*
 
 /multi_input_predict_pga_and_pgv/__pycache__
 /multi_input_predict_pga_and_pgv/mlruns
@@ -23,6 +27,7 @@ model/*
 
 #data preprocess
 data_preprocess/*
+!data_preprocess/*/.gitkeep
 !data_preprocess/images
 !data_preprocess/*.py
 !data_preprocess/README.md
@@ -60,3 +65,4 @@ model_performance_analysis/__pycache__
 
 #CWA eew
 /CWA_EEW_report
+/TTSAM_file
