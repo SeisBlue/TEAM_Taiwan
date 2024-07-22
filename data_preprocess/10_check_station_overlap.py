@@ -1,7 +1,7 @@
 import pandas as pd
 
-start_year=1999
-end_year=2008
+start_year = 1999
+end_year = 2008
 traces = pd.read_csv(
     f"./events_traces_catalog/{start_year}_{end_year}_picked_traces_p_arrival_abstime_labeled.csv"
 )
@@ -46,4 +46,3 @@ final_trace = pd.concat([differ_set, chosen_trace]).sort_index()
 #     f"./events_traces_catalog/{start_year}_{end_year}_picked_traces_p_arrival_abstime_labeled_nostaoverlap.csv",
 #     index=False,
 # )
-

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-from analysis import Intensity_Plotter,Warning_Time_Plotter
+from analysis import Intensity_Plotter, Warning_Time_Plotter
 
 
 mask_after_sec = 10
@@ -14,7 +14,7 @@ if label_type == "pgv":
     intensity = "V"
 
 path = "../predict/station_blind_Vs30_bias2closed_station_2016"
-output_path = f"{path}/mag bigger 5.5 predict"
+output_path = f"{path}/mag_bigger_5_5_predict"
 if not os.path.isdir(output_path):
     os.mkdir(output_path)
 Afile_path = "../data_preprocess/events_traces_catalog"
@@ -24,7 +24,7 @@ traces_info = pd.read_csv(
     f"{Afile_path}/2009_2019_picked_traces_p_arrival_abstime_labeled_nostaoverlap.csv"
 )
 prediction_with_info = pd.read_csv(
-    f"{path}/{mask_after_sec} sec model11 with all info.csv"
+    f"{path}/{mask_after_sec}_sec_model11_with_all_info.csv"
 )
 
 # for EQ_ID in catalog.query("year==2016 & magnitude>=5.5")["EQ_ID"]:

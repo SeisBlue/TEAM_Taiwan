@@ -6,6 +6,7 @@ import pandas as pd
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import sys
+
 sys.path.append("..")
 from data.multiple_sta_dataset import multiple_station_dataset
 from analysis import Triggered_Map
@@ -24,7 +25,7 @@ data = multiple_station_dataset(
     data_length_sec=15,
 )
 record_prediction = pd.read_csv(
-    f"../predict/station_blind_noVs30_bias2closed_station_2016/{mask_after_sec} sec ensemble 510 with all info.csv"
+    f"../predict/station_blind_noVs30_bias2closed_station_2016/{mask_after_sec}_sec_ensemble_510_with_all_info.csv"
 )
 record_prediction = record_prediction[record_prediction["EQ_ID"] == eq_id].reset_index(
     drop=True
@@ -61,7 +62,9 @@ for j, sample in tqdm(enumerate(loader)):
     EQ_ID.extend([np.nan] * (25 - len(eq_id_list)))
     if eq_id_list[0] == eq_id:
         waveform = sample["waveform"].numpy().reshape(25, 3000, 3)
-        waveforms_fig,waveforms_ax=Triggered_Map.plot_model_waveforms_input(waveform,picks,record_prediction,mask_after_sec)
+        waveforms_fig, waveforms_ax = Triggered_Map.plot_model_waveforms_input(
+            waveform, picks, record_prediction, mask_after_sec
+        )
 
         waveform_num = len(
             np.where(np.array(picks) <= picks[0] + (mask_after_sec * 200))[0]
@@ -78,8 +81,6 @@ for j, sample in tqdm(enumerate(loader)):
         waveforms_ax[0].set_title(
             f"EQID:{eq_id} {mask_after_sec} sec acc records, Z component", size=20
         )
-        waveforms_ax[-1].set_xlabel(
-            "Time sample (200Hz)",size=15
-        )
+        waveforms_ax[-1].set_xlabel("Time sample (200Hz)", size=15)
         # waveforms_fig.savefig(f"paper image/eqid{eq_id}_{mask_after_sec}_sec_Z_acc.png",bbox_inches='tight',dpi=300)
         break

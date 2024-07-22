@@ -4,6 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from read_tsmip import cut_traces
+
 start_year = 1999
 end_year = 2019
 sta_path = "../data/station_information"
@@ -14,7 +15,7 @@ catalog = pd.read_csv(
 traces = pd.read_csv(
     f"./events_traces_catalog/{start_year}_{end_year}_final_traces_Vs30.csv"
 )
-station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv") 
+station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv")
 traces.loc[traces.index, "p_pick_sec"] = pd.to_timedelta(
     traces["p_pick_sec"], unit="sec"
 )
@@ -42,7 +43,7 @@ with h5py.File(output, "w") as file:
             start_time_str_arr = np.array(traces_info["start_time"], dtype="S30")
             station_name_str_arr = np.array(tmp_traces["station_name"], dtype="S30")
             tmp_station_info = pd.merge(
-                tmp_traces[["station_name","Vs30"]],
+                tmp_traces[["station_name", "Vs30"]],
                 station_info[
                     ["location_code", "latitude", "longitude", "elevation (m)"]
                 ],
@@ -53,7 +54,7 @@ with h5py.File(output, "w") as file:
             location_array = np.array(
                 tmp_station_info[["latitude", "longitude", "elevation (m)"]]
             )
-            Vs30_array=np.array(tmp_traces["Vs30"])
+            Vs30_array = np.array(tmp_traces["Vs30"])
             if np.isnan(location_array).any():
                 print("The location array contain NaN values")
                 continue
@@ -85,9 +86,7 @@ with h5py.File(output, "w") as file:
             event.create_dataset(
                 "station_location", data=location_array, dtype=np.float64
             )
-            event.create_dataset(
-                "Vs30", data=Vs30_array, dtype=np.float64
-            )
+            event.create_dataset("Vs30", data=Vs30_array, dtype=np.float64)
         except Exception as reason:
             print(f"EQ_ID:{eq_id}, {reason}")
             error_event["EQ_ID"].append(eq_id)

@@ -103,10 +103,18 @@ trigger_station_info = pd.merge(
 trigger_station_info = trigger_station_info.dropna(
     subset=["latitude", "longitude", "elevation (m)", "Vs30"]
 )
-trigger_station_info=trigger_station_info[trigger_station_info["station_name"]!="HWA026"]
-trigger_station_info=trigger_station_info[trigger_station_info["station_name"]!="HWA067"]
-trigger_station_info=trigger_station_info[trigger_station_info["station_name"]!="HWA025"]
-trigger_station_info=trigger_station_info[trigger_station_info["station_name"]!="ILA050"]
+trigger_station_info = trigger_station_info[
+    trigger_station_info["station_name"] != "HWA026"
+]
+trigger_station_info = trigger_station_info[
+    trigger_station_info["station_name"] != "HWA067"
+]
+trigger_station_info = trigger_station_info[
+    trigger_station_info["station_name"] != "HWA025"
+]
+trigger_station_info = trigger_station_info[
+    trigger_station_info["station_name"] != "ILA050"
+]
 trigger_station_info = trigger_station_info.reset_index(drop=True)
 
 P_wave_velocity = 6.5
@@ -121,7 +129,7 @@ for i, station in enumerate(trigger_station_info["location_code"][:25]):
     # bad data padding to fit time window
     # HWA026 HWA067 HWA025 ILA050
     for trace in [trace_z, trace_n, trace_e]:
-        trace[0].data = trace[0].data/100 #cm/s2 to m/s2
+        trace[0].data = trace[0].data / 100  # cm/s2 to m/s2
         if len(trace[0].data) < target_length:
             padding_length = target_length - len(trace[0].data)
             padding = np.zeros(padding_length)
@@ -159,7 +167,7 @@ for i, station in enumerate(trigger_station_info["location_code"][:25]):
         trigger_station_info["dist (degree)"][i]
         - trigger_station_info["dist (degree)"][0]
     ) * 100 / P_wave_velocity > mask_after_sec:  # zero padding non triggered station
-        mask_station_index.append(i) #for mask non trigger station information
+        mask_station_index.append(i)  # for mask non trigger station information
         trace_z[0].data[:] = 0
         trace_n[0].data[:] = 0
         trace_e[0].data[:] = 0
@@ -187,7 +195,7 @@ for i, station in enumerate(trigger_station_info["location_code"][:25]):
 waveform = np.stack(waveforms_window, axis=0).tolist()
 target_station_info = trigger_station_info.copy()
 
-#mask non trigger station information
+# mask non trigger station information
 for i in mask_station_index:
     trigger_station_info.loc[i, ["latitude", "longitude", "elevation (m)", "Vs30"]] = 0
 

@@ -3,9 +3,11 @@ import sys
 
 from analysis import Intensity_Plotter
 
-path="../predict/station_blind_Vs30_bias2closed_station_2016"
-mask_after_sec=7
-prediction_with_info=pd.read_csv(f"{path}/{mask_after_sec} sec model11 with all info.csv")
+path = "../predict/station_blind_Vs30_bias2closed_station_2016"
+mask_after_sec = 7
+prediction_with_info = pd.read_csv(
+    f"{path}/{mask_after_sec}_sec_model11_with_all_info.csv"
+)
 # ===========plot mag>=5.5===========
 mag5_5_prediction = prediction_with_info.query("magnitude>=5.5")
 label_type = "pga"

@@ -4,8 +4,8 @@ import numpy as np
 from read_tsmip import read_tsmip, get_peak_value, get_integrated_stream
 
 # read traces catalog
-start_year=1999
-end_year=2008
+start_year = 1999
+end_year = 2008
 waveform_path = "../data/waveform"
 traces = pd.read_csv(
     f"./events_traces_catalog/{start_year}_{end_year}_picked_traces_p_arrival_abstime.csv"

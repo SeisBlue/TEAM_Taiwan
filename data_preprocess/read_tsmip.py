@@ -34,6 +34,12 @@ def read_tsmip(txt):
 
 
 def classify_event_trace(afile_path, afile_name, trace_folder):
+    """
+    將 Afile 中的 event 與 trace 分類
+
+    從 Afile 分出 event 的資訊，找出對應的 trace .txt 檔案
+    如果有就存到 trace_list 中
+    """
     events = []
     traces = []
     with open(afile_path) as f:
@@ -69,7 +75,7 @@ def read_header(header, EQ_ID=None):
         "depth": float(header[33:39]),
         "magnitude": float(header[39:43]),
         "nsta": header[43:45].replace(" ", ""),
-        "nearest_sta_dist (km)": header[45:50].replace(" ", "")
+        "nearest_sta_dist (km)": header[45:50].replace(" ", ""),
         # "Pfilename": header[46:58].replace(" ", ""),
         # "newNoPick": header[60:63].replace(" ", ""),
     }
@@ -217,15 +223,15 @@ def trace_pick_plot(
     return p_pick, s_pick, fig
 
 
-def get_peak_value(stream, pick_point=0,thresholds=None):
+def get_peak_value(stream, pick_point=0, thresholds=None):
     data = [tr.data for tr in stream]
     data = np.array(data)
-    data=data[:,pick_point:]
+    data = data[:, pick_point:]
     vector = np.linalg.norm(data, axis=0)
 
     peak = max(vector)
     peak_time = np.argmax(vector, axis=0)
-    peak_time+=pick_point
+    peak_time += pick_point
     peak = np.log10(peak / 100)
 
     exceed_times = np.zeros(5)
@@ -284,8 +290,10 @@ def cut_traces(
         path = f"{waveform_path}/{year}/{month}"
         file_name = file_name.strip()
         stream = read_tsmip(f"{path}/{file_name}.txt")
-    except: #for special case
-        data = pd.read_csv(f"{waveform_path}/{file_name}.asc", sep="\s+", skiprows=1, header=None).to_numpy()
+    except:  # for special case
+        data = pd.read_csv(
+            f"{waveform_path}/{file_name}.asc", sep="\s+", skiprows=1, header=None
+        ).to_numpy()
 
         with open(f"{waveform_path}/{file_name}.asc", "r") as f:
             picks = f.readlines()[0]
@@ -323,16 +331,16 @@ def cut_traces(
 
     trace_length_point = int(trace_length_sec * target_sampling_rate)
     first_start_cut_point = int(
-    np.round(
-        (
-            tmp_traces["p_pick_sec"][0] - pd.Timedelta(seconds=before_p_sec)
-        ).total_seconds(),
-        2,
-    )
-    * target_sampling_rate
+        np.round(
+            (
+                tmp_traces["p_pick_sec"][0] - pd.Timedelta(seconds=before_p_sec)
+            ).total_seconds(),
+            2,
+        )
+        * target_sampling_rate
     )
     abs_cut_starttime = tmp_traces["p_arrival_abs_time"][0] - pd.Timedelta(
-    seconds=before_p_sec
+        seconds=before_p_sec
     )
     if first_start_cut_point < 0:
         first_start_cut_point = 0
@@ -351,9 +359,7 @@ def cut_traces(
         ]
 
     p_picks_point = int(
-        np.round(
-            tmp_traces["p_pick_sec"][0].total_seconds() * target_sampling_rate, 0
-        )
+        np.round(tmp_traces["p_pick_sec"][0].total_seconds() * target_sampling_rate, 0)
         - first_start_cut_point
     )
     pga_time = int(tmp_traces["pga_time"][0] - first_start_cut_point)
@@ -381,8 +387,13 @@ def cut_traces(
                 path = f"{waveform_path}/{year}/{month}"
                 file_name = file_name.strip()
                 stream = read_tsmip(f"{path}/{file_name}.txt")
-            except: #for special case
-                data = pd.read_csv(f"{waveform_path}/{file_name}.asc", sep="\s+", skiprows=1, header=None).to_numpy()
+            except:  # for special case
+                data = pd.read_csv(
+                    f"{waveform_path}/{file_name}.asc",
+                    sep="\s+",
+                    skiprows=1,
+                    header=None,
+                ).to_numpy()
 
                 with open(f"{waveform_path}/{file_name}.asc", "r") as f:
                     picks = f.readlines()[0]
@@ -419,9 +430,9 @@ def cut_traces(
 
             trace = np.transpose(np.array(stream)) / 100  # cm/s^2 to m/s^2
             window_cut_time = (
-                        tmp_traces["p_pick_sec"][i] 
-                        - (tmp_traces["p_arrival_abs_time"][i] - abs_cut_starttime)
-                    ).total_seconds()
+                tmp_traces["p_pick_sec"][i]
+                - (tmp_traces["p_arrival_abs_time"][i] - abs_cut_starttime)
+            ).total_seconds()
             start_cut_point = int(window_cut_time * target_sampling_rate)
             if window_cut_time < 0:
                 # print("pad at the beginning")
@@ -446,8 +457,7 @@ def cut_traces(
                 )
             p_picks_point = int(
                 np.round(
-                    tmp_traces["p_pick_sec"][i].total_seconds()
-                    * target_sampling_rate,
+                    tmp_traces["p_pick_sec"][i].total_seconds() * target_sampling_rate,
                     0,
                 )
                 - start_cut_point

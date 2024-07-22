@@ -16,7 +16,7 @@ catalog = pd.read_csv(
 traces = pd.read_csv(
     f"./events_traces_catalog/{start_year}_{end_year}_final_traces_Vs30.csv"
 )
-station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv") 
+station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv")
 traces.loc[traces.index, "p_pick_sec"] = pd.to_timedelta(
     traces["p_pick_sec"], unit="sec"
 )
@@ -25,8 +25,10 @@ traces.loc[traces.index, "p_arrival_abs_time"] = pd.to_datetime(
 )
 
 for eq_id in tqdm(catalog["EQ_ID"]):
-    tmp_traces, traces_info = cut_traces(traces, eq_id, waveform_path, waveform_type="acc")
-    for i,chan in enumerate(["HLZ","HLN","HLE"]):
+    tmp_traces, traces_info = cut_traces(
+        traces, eq_id, waveform_path, waveform_type="acc"
+    )
+    for i, chan in enumerate(["HLZ", "HLN", "HLE"]):
         stream = obspy.core.stream.Stream()
         for j in range(len(traces_info["traces"])):
             trace = obspy.core.trace.Trace(data=traces_info["traces"][j][:, i])
@@ -39,7 +41,7 @@ for eq_id in tqdm(catalog["EQ_ID"]):
 
             stream.append(trace)
         fig, ax = plt.subplots()
-        stream.plot(type="section",fig=fig)
+        stream.plot(type="section", fig=fig)
 
         magnitude = catalog[catalog["EQ_ID"] == eq_id]["magnitude"].values[0]
 

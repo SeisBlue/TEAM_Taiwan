@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import sys
+
 sys.path.append("..")
 from model.CNN_Transformer_Mixtureoutput_TEAM import (
     CNN,
@@ -178,7 +179,7 @@ trace_merge_catalog.drop(
 trace_merge_catalog.rename(columns={"elevation (m)": "elevation"}, inplace=True)
 
 
-data_path = "D:/TEAM_TSMIP/data/TSMIP_1999_2019.hdf5"
+data_path = "../data/TSMIP_1999_2019.hdf5"
 dataset = h5py.File(data_path, "r")
 for eq_id in ensemble_predict["EQ_ID"].unique():
     eq_id = int(eq_id)

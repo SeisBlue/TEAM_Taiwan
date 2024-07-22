@@ -42,7 +42,7 @@ fig, ax = rw_instance.plot_maximum_warning_time(
 event_info = warning_df_with_station_info[
     warning_df_with_station_info["EQ_ID"] == eq_id
 ]
-fig,ax=rw_instance.plot_event_warning_time_with_distance_range(
+fig, ax = rw_instance.plot_event_warning_time_with_distance_range(
     event_info=event_info, distance_range=[20, 60], event_loc=[120.543833333333, 22.922]
 )
 

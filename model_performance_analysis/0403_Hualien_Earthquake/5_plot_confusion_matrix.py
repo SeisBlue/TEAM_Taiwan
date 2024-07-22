@@ -66,7 +66,9 @@ intensity = ["0", "1", "2", "3", "4", "5-", "5+", "6-", "6+", "7"]
 max_prediction["predicted_intensity"] = max_prediction["max_predict"].apply(
     Precision_Recall_Factory.pga_to_intensity
 )
-max_prediction["answer_intensity"] = max_prediction["PGA"].apply(Precision_Recall_Factory.pga_to_intensity)
+max_prediction["answer_intensity"] = max_prediction["PGA"].apply(
+    Precision_Recall_Factory.pga_to_intensity
+)
 
 intensity_confusion_matrix = confusion_matrix(
     max_prediction["answer_intensity"],

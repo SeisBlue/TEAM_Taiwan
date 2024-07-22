@@ -842,6 +842,7 @@ class Warning_Time_Plotter:
         cbar.set_label("Warning time (sec)")
 
         return fig, ax_map
+
     @staticmethod
     def warning_time_hist(
         prediction=None,
@@ -1096,10 +1097,7 @@ class Triggered_Map:
         gd = Geodesic()
         geoms = []
         if min_epdis:
-            P_radius = (
-            min_epdis
-            + sec * Pwave_vel
-            ) * 1000
+            P_radius = (min_epdis + sec * Pwave_vel) * 1000
         else:
             P_radius = (
                 trace_info["epdis (km)"][
@@ -1596,16 +1594,24 @@ class Consider_Angle:
 
     @staticmethod
     def plot_pga_attenuation(prediction=None):
-        fig,ax=plt.subplots()
-        scatter=ax.scatter(prediction["dist"],prediction["PGA"],c=prediction["angle"],alpha=0.5)
+        fig, ax = plt.subplots()
+        scatter = ax.scatter(
+            prediction["dist"], prediction["PGA"], c=prediction["angle"], alpha=0.5
+        )
         ax.set_ylabel(r"PGA log(${m/s^2}$)")
         ax.set_xlabel("hypocentral distance (km)")
         cbar = plt.colorbar(scatter)
         cbar.set_label("angle (degree)")
-        return fig,ax
+        return fig, ax
 
     @staticmethod
-    def angle_map(stations=None,init_sta_lon=None,init_sta_lat=None,event_lon=None,event_lat=None):
+    def angle_map(
+        stations=None,
+        init_sta_lon=None,
+        init_sta_lat=None,
+        event_lon=None,
+        event_lat=None,
+    ):
         src_crs = ccrs.PlateCarree()
         fig, ax_map = plt.subplots(subplot_kw={"projection": src_crs}, figsize=(7, 7))
         ax_map.coastlines("10m")
@@ -1647,4 +1653,4 @@ class Consider_Angle:
         cbar = plt.colorbar(scatter)
 
         cbar.set_label(r"angle (degree)")
-        return fig,ax_map
+        return fig, ax_map

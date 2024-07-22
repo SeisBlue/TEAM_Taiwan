@@ -13,18 +13,18 @@ test_catalog = origin_catalog.query(f"year=={test_year}")
 fig, ax = Plot_Train_Test_Data.event_histogram(
     train_catalog, test_catalog, key="magnitude", xlabel="magnitude"
 )
-# fig.savefig(f"paper image/event depth distribution.png",dpi=300)
-# fig.savefig(f"paper image/event depth distribution.pdf",dpi=300)
+# fig.savefig(f"paper_image/event_depth_distribution.png",dpi=300)
+# fig.savefig(f"paper_image/event depth distribution.pdf",dpi=300)
 
 # event distribution in map
 fig, ax = Plot_Train_Test_Data.event_map(train_catalog, test_catalog)
-# fig.savefig(f"paper image/event distribution map.png",dpi=300)
-# fig.savefig(f"paper image/event distribution map.pdf",dpi=300)
+# fig.savefig(f"paper_image/event_distribution_map.png",dpi=300)
+# fig.savefig(f"paper_image/event distribution map.pdf",dpi=300)
 
 # traces pga histogram
 fig, ax = Plot_Train_Test_Data.pga_histogram(traces_catalog, test_year=test_year)
-# fig.savefig(f"paper image/trace pga distribution.png",dpi=300)
-# fig.savefig(f"paper image/trace pga distribution.pdf",dpi=300)
+# fig.savefig(f"paper_image/trace_pga_distribution.png",dpi=300)
+# fig.savefig(f"paper_image/trace pga distribution.pdf",dpi=300)
 
 
 # test oversampling method
@@ -66,4 +66,4 @@ fig, ax = Increase_High_Data_Test.plot_pga_histogram(
     oversampled_high_intensity_rate,
     bias_closed_sta_high_intensity_rate,
 )
-# fig.savefig("PGA distribution.png", dpi=300,bbox_inches='tight')
+# fig.savefig("PGA_distribution.png", dpi=300, bbox_inches="tight")

@@ -1,14 +1,16 @@
 import pandas as pd
 import os
 
-#before run this script, you need to go to "tracer_demo/":
-#use "input_file.py" to create input data
+# before run this script, you need to go to "tracer_demo/":
+# use "input_file.py" to create input data
 # calculate p wave arrival by velocity model(Huang et al., 2014)
-#paper link: https://www.sciencedirect.com/science/article/pii/S0012821X14000995
+# paper link: https://www.sciencedirect.com/science/article/pii/S0012821X14000995
 
-start_year=1999
-end_year=2008
-traces = pd.read_csv(f"events_traces_catalog/{start_year}_{end_year}_ok_picked_traces.csv")
+start_year = 1999
+end_year = 2008
+traces = pd.read_csv(
+    f"events_traces_catalog/{start_year}_{end_year}_ok_picked_traces.csv"
+)
 
 EQ_ID = os.listdir(f"./tracer_demo/{start_year}_{end_year}_output")
 

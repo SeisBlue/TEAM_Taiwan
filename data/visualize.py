@@ -26,6 +26,7 @@ class Plot_Train_Test_Data:
         if title:
             ax.set_title(f"{title}")
         return fig, ax
+
     @staticmethod
     def event_map(train_catalog=None, test_catalog=None, title=None):
         src_crs = ccrs.PlateCarree()
@@ -76,6 +77,7 @@ class Plot_Train_Test_Data:
             ax_map.set_title(f"{title}")
         ax_map.legend()
         return fig, ax_map
+
     @staticmethod
     def pga_histogram(traces_catalog=None, test_year=None, title=None):
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -143,6 +145,7 @@ class Increase_High_Data_Test:
             ).tolist()
             origin_PGA.extend(tmp_pga)
         return origin_PGA
+
     @staticmethod
     def plot_pga_histogram(
         bias_closed_sta_PGA=None,

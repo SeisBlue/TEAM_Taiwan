@@ -4,8 +4,8 @@ import os
 from read_tsmip import read_tsmip
 from obspy.signal.trigger import ar_pick
 
-start_year=1999
-end_year=2008
+start_year = 1999
+end_year = 2008
 waveform_path = "../data/waveform"
 traces = pd.read_csv(f"./events_traces_catalog/{start_year}_{end_year}_ok_traces.csv")
 
@@ -47,5 +47,3 @@ for i in range(len(traces)):
     traces.loc[i, "p_pick_sec"] = p_pick
 
 # traces.to_csv(f"events_traces_catalog/{start_year}_{end_year}_ok_picked_traces.csv",index=False)
-
-
