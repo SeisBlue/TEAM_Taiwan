@@ -21,6 +21,7 @@ import math
 
 
 class Precision_Recall_Factory:
+    @staticmethod
     def pga_to_intensity(value):
         pga_threshold = np.log10(
             [0.008, 0.025, 0.080, 0.250, 0.80, 1.4, 2.5, 4.4, 8.0, 10]
@@ -31,6 +32,7 @@ class Precision_Recall_Factory:
                 return intensity[i]
         return intensity[-1]
 
+    @staticmethod
     def plot_intensity_confusion_matrix(
         intensity_confusion_matrix,
         intensity_score=None,
@@ -72,6 +74,7 @@ class Precision_Recall_Factory:
             )
         return fig, ax
 
+    @staticmethod
     def plot_score_curve(
         performance_score,
         fig,
@@ -133,7 +136,7 @@ class TaiwanIntensity:
 
 
 class Intensity_Plotter:
-
+    @staticmethod
     def plot_intensity_map(
         trace_info=None,
         eventmeta=None,
@@ -311,6 +314,7 @@ class Intensity_Plotter:
             plt.show()
         return fig, ax_map
 
+    @staticmethod
     def plot_true_predicted(
         y_true,
         y_pred,
@@ -412,6 +416,7 @@ class Intensity_Plotter:
         # return ax, cbar
         return fig, ax
 
+    @staticmethod
     def plot_CWA_EEW_intensity_map(
         final_traces, final_catalog, eqid, label_type, output_path=None
     ):
@@ -556,6 +561,7 @@ class Intensity_Plotter:
             fig.savefig(f"{output_path}/eqid_{eqid}_CWA_eew_report.pdf", dpi=300)
         return fig, ax_map
 
+    @staticmethod
     def plot_intensity_scatter_map(
         event=None, event_lon=None, event_lat=None, mag=None, pga_column=None
     ):
@@ -661,7 +667,7 @@ class Intensity_Plotter:
 
 
 class Warning_Time_Plotter:
-
+    @staticmethod
     def warning_map(
         trace_info=None,
         eventmeta=None,
@@ -836,7 +842,7 @@ class Warning_Time_Plotter:
         cbar.set_label("Warning time (sec)")
 
         return fig, ax_map
-
+    @staticmethod
     def warning_time_hist(
         prediction=None,
         catalog=None,
@@ -911,6 +917,7 @@ class Warning_Time_Plotter:
         ax.yaxis.set_tick_params(labelsize=12)
         return fig, ax
 
+    @staticmethod
     def correct_warning_with_epidist(
         event_prediction=None,
         mask_after_sec=None,
@@ -953,6 +960,7 @@ class Warning_Time_Plotter:
         ax.set_ylabel("time (sec)")
         return fig, ax
 
+    @staticmethod
     def p_wave_pga_travel_time(
         event_prediction=None, label_threshold=np.log10(0.25), title=None
     ):  # np.log10(0.25)-> seismic intensity 4
@@ -1040,7 +1048,7 @@ class Warning_Time_Plotter:
 
 
 class Triggered_Map:
-
+    @staticmethod
     def plot_station_map(
         trace_info=None,
         min_epdis=None,
@@ -1171,6 +1179,7 @@ class Triggered_Map:
             plt.show()
         return fig, ax_map
 
+    @staticmethod
     def plot_model_waveforms_input(waveform, picks, record_prediction, mask_after_sec):
         waveform_num = len(
             np.where(np.array(picks) <= picks[0] + (mask_after_sec * 200))[0]
@@ -1210,6 +1219,7 @@ class Triggered_Map:
 
 
 class Residual_Plotter:
+    @staticmethod
     def residual_with_attribute(
         prediction_with_info=None,
         column=None,
@@ -1250,6 +1260,7 @@ class Residual_Plotter:
         )
         return fig, ax
 
+    @staticmethod
     def single_event_residual_map(prediction_with_info=None, eq_id=None, title=None):
         earthquake = prediction_with_info.query(f"EQ_ID =={eq_id}")
         residual = earthquake["predict"] - earthquake["answer"]
@@ -1277,6 +1288,7 @@ class Residual_Plotter:
             ax_map.set_title(f"{title}")
         return fig, ax_map
 
+    @staticmethod
     def events_station_map(grouby_sta=None, column=None, cmap=None, title=None):
         max_abs_difference = abs(grouby_sta["predict_residual", "mean"]).max()
         negative_max_difference = -max_abs_difference
@@ -1561,6 +1573,7 @@ class Rolling_Warning:
 
 
 class Consider_Angle:
+    @staticmethod
     def calculate_angle(x1, y1, x2, y2):
         # 計算兩點之間的斜率
         delta_x = x2 - x1
@@ -1580,6 +1593,8 @@ class Consider_Angle:
             angle_degrees += 360
 
         return angle_degrees % 360
+
+    @staticmethod
     def plot_pga_attenuation(prediction=None):
         fig,ax=plt.subplots()
         scatter=ax.scatter(prediction["dist"],prediction["PGA"],c=prediction["angle"],alpha=0.5)
@@ -1588,6 +1603,8 @@ class Consider_Angle:
         cbar = plt.colorbar(scatter)
         cbar.set_label("angle (degree)")
         return fig,ax
+
+    @staticmethod
     def angle_map(stations=None,init_sta_lon=None,init_sta_lat=None,event_lon=None,event_lat=None):
         src_crs = ccrs.PlateCarree()
         fig, ax_map = plt.subplots(subplot_kw={"projection": src_crs}, figsize=(7, 7))
