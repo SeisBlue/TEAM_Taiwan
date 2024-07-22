@@ -17,13 +17,9 @@ overlap_trace = pd.DataFrame()
 for eq_id in catalog["EQ_ID"]:
     tmp_traces = traces.query(f"EQ_ID == {eq_id}")
     counts = tmp_traces["station_name"].value_counts()
-
     target_station = counts[counts > 1].index.tolist()
-
     mask = tmp_traces["station_name"].isin(target_station)
-
     tmp_overlap_trace = tmp_traces[mask]
-
     overlap_trace = pd.concat([overlap_trace, tmp_overlap_trace])
 
 # 將instrument 編號，設定優先順序

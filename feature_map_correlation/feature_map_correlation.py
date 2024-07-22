@@ -10,8 +10,8 @@ from scipy.ndimage import zoom
 import sys
 
 sys.path.append("..")
-from data.multiple_sta_dataset import multiple_station_dataset
-from model.CNN_Transformer_Mixtureoutput_TEAM import CNN_feature_map
+from data.multiple_sta_dataset import MultipleStationDataset
+from model.CNN_Transformer_Mixtureoutput_TEAM import CnnFeatureMap
 import os
 from scipy.signal import hilbert
 from tlcc_analysis import Plotter, Calculator
@@ -20,7 +20,7 @@ from tlcc_analysis import Plotter, Calculator
 mask_after_sec = 10
 sample_rate = 200
 label = "pga"
-data = multiple_station_dataset(
+data = MultipleStationDataset(
     "../data/TSMIP_1999_2019_Vs30.hdf5",
     mode="test",
     mask_waveform_sec=mask_after_sec,
@@ -40,7 +40,7 @@ num = 11
 path = f"../model/model{num}.pt"
 emb_dim = 150
 mlp_dims = (150, 100, 50, 30, 10)
-CNN_model = CNN_feature_map(mlp_input=5665).cuda()
+CNN_model = CnnFeatureMap(mlp_input=5665).cuda()
 
 full_model_parameter = torch.load(path)
 # ===========load CNN parameter==============

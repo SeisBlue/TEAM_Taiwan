@@ -14,11 +14,11 @@ from model.CNN_Transformer_Mixtureoutput_TEAM import (
     CNN,
     MDN,
     MLP,
-    PositionEmbedding_Vs30,  # if you don't have vs30 data, please use "PositionEmbedding"
+    PositionembeddingVs30,  # if you don't have vs30 data, please use "PositionEmbedding"
     TransformerEncoder,
-    full_model,
+    FullModel,
 )
-from data.multiple_sta_dataset import multiple_station_dataset
+from data.multiple_sta_dataset import MultipleStationDataset
 
 """
 set up mlflow experiment:
@@ -230,12 +230,12 @@ if __name__ == "__main__":
                 mlp_dims = (150, 100, 50, 30, 10)
 
                 CNN_model = CNN(mlp_input=5665).cuda()
-                pos_emb_model = PositionEmbedding_Vs30(emb_dim=emb_dim).cuda()
+                pos_emb_model = PositionembeddingVs30(emb_dim=emb_dim).cuda()
                 transformer_model = TransformerEncoder()
                 mlp_model = MLP(input_shape=(emb_dim,), dims=mlp_dims).cuda()
                 mdn_model = MDN(input_shape=(mlp_dims[-1],)).cuda()
 
-                full_Model = full_model(
+                full_Model = FullModel(
                     CNN_model,
                     pos_emb_model,
                     transformer_model,
@@ -253,7 +253,7 @@ if __name__ == "__main__":
                     ],
                     lr=LR,
                 )
-                full_data = multiple_station_dataset(
+                full_data = MultipleStationDataset(
                     "../data/TSMIP_1999_2019_Vs30.hdf5",
                     mode="train",
                     mask_waveform_sec=3,

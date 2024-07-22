@@ -1,5 +1,5 @@
 import pandas as pd
-from analysis import Intensity_Plotter
+from analysis import IntensityPlotter
 
 eqid = 24784
 data_folder = "../data/station_information"
@@ -51,7 +51,7 @@ ttsam_merge_data["eqid"] = ttsam_merge_data["EQ_ID"]
 # change "ttsam_merge_data" or "cwa_merge_data" to plot each system intensity map
 event = ttsam_merge_data.query(f"eqid=={eqid}")
 
-fig, ax = Intensity_Plotter.plot_intensity_scatter_map(
+fig, ax = IntensityPlotter.plot_intensity_scatter_map(
     event,
     event_lon,
     event_lat,

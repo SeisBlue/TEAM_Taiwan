@@ -4,7 +4,7 @@ import numpy as np
 import re
 import os
 from sklearn.metrics import confusion_matrix
-from analysis import Intensity_Plotter
+from analysis import IntensityPlotter
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -183,7 +183,7 @@ precision = matrix[0][0] / np.sum(matrix, axis=0)[0]  # TP/(TP+FP)
 recall = matrix[0][0] / np.sum(matrix, axis=1)[0]  # TP/(TP+FP)
 F1_score = 2 / ((1 / precision) + (1 / recall))
 
-fig, ax = Intensity_Plotter.plot_true_predicted(
+fig, ax = IntensityPlotter.plot_true_predicted(
     y_true=np.log10(final_traces["PGA"] * 0.01),
     y_pred=np.log10(final_traces["predict_pga"] * 0.01),
     quantile=False,
@@ -197,7 +197,7 @@ fig, ax = Intensity_Plotter.plot_true_predicted(
 
 for eqid in final_catalog["eqid"]:
     label_type = "pga"
-    fig, ax = Intensity_Plotter.plot_CWA_EEW_intensity_map(
+    fig, ax = IntensityPlotter.plot_CWA_EEW_intensity_map(
         final_traces, final_catalog, eqid, label_type
     )
 

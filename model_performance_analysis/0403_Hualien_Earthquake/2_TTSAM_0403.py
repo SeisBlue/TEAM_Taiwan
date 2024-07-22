@@ -8,9 +8,9 @@ from model.CNN_Transformer_Mixtureoutput_TEAM import (
     CNN,
     MDN,
     MLP,
-    PositionEmbedding_Vs30,
+    PositionembeddingVs30,
     TransformerEncoder,
-    full_model,
+    FullModel,
 )
 
 mask_after_sec = 3
@@ -20,11 +20,11 @@ path = f"../../model/model{num}.pt"
 emb_dim = 150
 mlp_dims = (150, 100, 50, 30, 10)
 CNN_model = CNN(mlp_input=5665).cuda()
-pos_emb_model = PositionEmbedding_Vs30(emb_dim=emb_dim).cuda()
+pos_emb_model = PositionembeddingVs30(emb_dim=emb_dim).cuda()
 transformer_model = TransformerEncoder()
 mlp_model = MLP(input_shape=(emb_dim,), dims=mlp_dims).cuda()
 mdn_model = MDN(input_shape=(mlp_dims[-1],)).cuda()
-full_Model = full_model(
+full_Model = FullModel(
     CNN_model,
     pos_emb_model,
     transformer_model,

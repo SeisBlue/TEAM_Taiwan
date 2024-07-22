@@ -1,5 +1,5 @@
 import pandas as pd
-from analysis import Intensity_Plotter
+from analysis import IntensityPlotter
 
 predict_path = (
     "../predict/station_blind_Vs30_bias2closed_station_2016/0918_M6.8_1319_1330"
@@ -12,7 +12,7 @@ prediction = pd.read_csv(
 )
 catalog["longitude"] = catalog["lon"] + catalog["lon_minute"] / 60
 catalog["latitude"] = catalog["lat"] + catalog["lat_minute"] / 60
-fig, ax = Intensity_Plotter.plot_intensity_map(
+fig, ax = IntensityPlotter.plot_intensity_map(
     trace_info=prediction,
     eventmeta=catalog,
     label_type="pga",

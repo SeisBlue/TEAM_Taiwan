@@ -1,5 +1,5 @@
 import pandas as pd
-from analysis import Triggered_Map
+from analysis import TriggeredMap
 
 # plot input station map
 mask_after_sec = 10
@@ -17,7 +17,7 @@ input_station = record_prediction[
 if len(input_station) >= 25:
     input_station = input_station[:25]
 
-fig, ax = Triggered_Map.plot_station_map(
+fig, ax = TriggeredMap.plot_station_map(
     trace_info=input_station,
     sec=mask_after_sec,
     EQ_ID=eq_id,

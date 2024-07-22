@@ -138,7 +138,7 @@ class CNN(nn.Module):  # input_shape -> BatchSize, Channels, Height, Width
         return output
 
 
-class CNN_feature_map(nn.Module):  # get cnn feature map to explain feature extraction
+class CnnFeatureMap(nn.Module):  # get cnn feature map to explain feature extraction
     def __init__(
         self,
         input_shape=(-1, 6000, 3),
@@ -148,7 +148,7 @@ class CNN_feature_map(nn.Module):  # get cnn feature map to explain feature extr
         mlp_dims=(500, 300, 200, 150),
         eps=1e-8,
     ):
-        super(CNN_feature_map, self).__init__()
+        super(CnnFeatureMap, self).__init__()
         self.input_shape = input_shape
         self.activation = activation
         self.downsample = downsample
@@ -329,7 +329,7 @@ class PositionEmbedding(
         return output
 
 
-class PositionEmbedding_Vs30(
+class PositionembeddingVs30(
     nn.Module
 ):  # embed station location (latitude, longitude, elevation, Vs30) to vector
     def __init__(
@@ -339,7 +339,7 @@ class PositionEmbedding_Vs30(
         **kwargs
         # self, wavelengths=((21, 26), (119, 123), (0.01, 4000)), emb_dim=500, **kwargs
     ):
-        super(PositionEmbedding_Vs30, self).__init__(**kwargs)
+        super(PositionembeddingVs30, self).__init__(**kwargs)
         # Format: [(min_lat, max_lat), (min_lon, max_lon), (min_depth, max_depth)]
         self.wavelengths = wavelengths
         self.emb_dim = emb_dim
@@ -489,26 +489,26 @@ class MDN(nn.Module):
         return weight, sigma, mu
 
 
-class full_model(nn.Module):
+class FullModel(nn.Module):
     def __init__(
         self,
-        model_CNN,
-        model_Position,
-        model_Transformer,
+        model_cnn,
+        model_position,
+        model_transformer,
         model_mlp,
-        model_MDN,
+        model_mdn,
         max_station=25,
         pga_targets=15,
         emb_dim=150,
         data_length=6000,
     ):
-        super(full_model, self).__init__()
+        super(FullModel, self).__init__()
         self.data_length = data_length
-        self.model_CNN = model_CNN
-        self.model_Position = model_Position
-        self.model_Transformer = model_Transformer
+        self.model_CNN = model_cnn
+        self.model_Position = model_position
+        self.model_Transformer = model_transformer
         self.model_mlp = model_mlp
-        self.model_MDN = model_MDN
+        self.model_MDN = model_mdn
         self.max_station = max_station
         self.pga_targets = pga_targets
         self.emb_dim = emb_dim
@@ -563,10 +563,12 @@ class full_model(nn.Module):
 
 def gaussian_distribution(y, mu, sigma):
     # make |mu|=K copies of y, subtract mu, divide by sigma
-    oneDivSqrtTwoPI = 1.0 / np.sqrt(2.0 * np.pi)  # normalization factor for Gaussians
+    one_div_sqrt_two_pi = 1.0 / np.sqrt(
+        2.0 * np.pi
+    )  # normalization factor for Gaussians
     result = (y.expand_as(mu) - mu) * torch.reciprocal(sigma)
     result = -0.5 * (result * result)
-    return (torch.exp(result) * torch.reciprocal(sigma)) * oneDivSqrtTwoPI
+    return (torch.exp(result) * torch.reciprocal(sigma)) * one_div_sqrt_two_pi
 
 
 def mdn_loss_fn(pi, sigma, mu, y):

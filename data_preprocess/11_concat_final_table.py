@@ -19,7 +19,6 @@ catalog2 = pd.read_csv(
 )
 
 final_trace = pd.concat([traces1, traces2])
-
 final_catalog = pd.concat([catalog1, catalog2])
 
 # final_trace.to_csv(f"./events_traces_catalog/{start_year1}_{end_year2}_final_traces.csv",index=False)

@@ -5,13 +5,13 @@ import cartopy.crs as ccrs
 from cartopy.mpl import ticker
 import cartopy
 import numpy as np
-from multiple_sta_dataset import multiple_station_dataset
+from multiple_sta_dataset import MultipleStationDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import torch
 
 
-class Plot_Train_Test_Data:
+class PlotTrainTestData:
     @staticmethod
     def event_histogram(
         train_catalog=None, test_catalog=None, key=None, xlabel=None, title=None
@@ -114,12 +114,12 @@ class Plot_Train_Test_Data:
         return fig, ax
 
 
-class Increase_High_Data_Test:
+class IncreaseHighDataTest:
     @staticmethod
     def load_dataset_into_list(
         data_path, oversample_rate=1, bias_to_close_station=False
     ):
-        dataset = multiple_station_dataset(
+        dataset = MultipleStationDataset(
             data_path,
             mode="train",
             mask_waveform_sec=3,

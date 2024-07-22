@@ -8,14 +8,14 @@ from tqdm import tqdm
 import sys
 
 sys.path.append("..")
-from data.multiple_sta_dataset import multiple_station_dataset
-from analysis import Triggered_Map
+from data.multiple_sta_dataset import MultipleStationDataset
+from analysis import TriggeredMap
 
 
 mask_after_sec = 10
 label = "pga"
 eq_id = 25900
-data = multiple_station_dataset(
+data = MultipleStationDataset(
     "../data/TSMIP_1999_2019_Vs30.hdf5",
     mode="test",
     mask_waveform_sec=mask_after_sec,
@@ -62,7 +62,7 @@ for j, sample in tqdm(enumerate(loader)):
     EQ_ID.extend([np.nan] * (25 - len(eq_id_list)))
     if eq_id_list[0] == eq_id:
         waveform = sample["waveform"].numpy().reshape(25, 3000, 3)
-        waveforms_fig, waveforms_ax = Triggered_Map.plot_model_waveforms_input(
+        waveforms_fig, waveforms_ax = TriggeredMap.plot_model_waveforms_input(
             waveform, picks, record_prediction, mask_after_sec
         )
 
