@@ -3,13 +3,13 @@ Cartopy
 h5py
 matplotlib
 mlflow
+numexpr>=2.8.4
 numpy
+obspy
 pandas
-pygmt
 scikit-learn
 scipy
 seaborn
 tables
-torch
 tqdm
 ViTables

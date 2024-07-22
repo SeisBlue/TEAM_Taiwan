@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
 
 # Ignore all interactive dialog during apt-get update
 ENV DEBIAN_FRONTEND=noninteractive
@@ -7,14 +7,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y; \
     apt-get install -y \
     curl git htop sudo vim \
-    python3-dev python3-pip libgeos-dev \
-    gmt gmt-dcw gmt-gshhg ghostscript gdal-bin graphicsmagick ffmpeg
+    python3-dev python3-pip libgeos-dev pkg-config libhdf5-dev\
+    ghostscript gdal-bin graphicsmagick ffmpeg
 
-# Python package install
+COPY docker/conda_requirements.txt /tmp/
+RUN conda update -y conda; \
+    conda install --yes --channel conda-forge --file /tmp/conda_requirements.txt;
+
 COPY docker/requirements.txt /tmp/
-RUN python3 -m pip install --upgrade pip;
-RUN python3 -m pip install shapely --no-binary shapely;
-RUN python3 -m pip --no-cache-dir install --requirement /tmp/requirements.txt;
-
-# Define working directory
-CMD ["bash"]
+RUN /opt/conda/bin/python3 -m pip install --upgrade pip; \
+    /opt/conda/bin/python3 -m pip --no-cache-dir install -r /tmp/requirements.txt;
