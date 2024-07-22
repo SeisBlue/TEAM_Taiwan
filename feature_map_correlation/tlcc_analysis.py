@@ -62,9 +62,10 @@ class Calculator:
 
         return delay, tlcc_values
 
+
 class Plotter:
     @staticmethod
-    def plot_waveform(waveform, eq_id, input_station,index, output_path=None):
+    def plot_waveform(waveform, eq_id, input_station, index, output_path=None):
         fig, ax = plt.subplots(3, 1, figsize=(14, 7))
         for j in range(len(ax)):
             ax[j].plot(waveform[:, j])
@@ -75,7 +76,13 @@ class Plotter:
 
     @staticmethod
     def plot_correlation_curve_with_shift_time(
-        delay_values, tlcc_values, eq_id, attribute, index, mask_after_sec, output_path=None
+        delay_values,
+        tlcc_values,
+        eq_id,
+        attribute,
+        index,
+        mask_after_sec,
+        output_path=None,
     ):
         fig, ax = plt.subplots(figsize=(14, 7))
         ax.plot(delay_values, tlcc_values)
@@ -206,7 +213,12 @@ class Plotter:
 
     @staticmethod
     def plot_time_shifted_with_hist(
-        attribute_dict, attribute, delay_mean, delay_std, mask_after_sec, output_path=None
+        attribute_dict,
+        attribute,
+        delay_mean,
+        delay_std,
+        mask_after_sec,
+        output_path=None,
     ):
         fig, ax = plt.subplots()
         ax.hist(attribute_dict[attribute]["max_delay"], bins=15, edgecolor="k")

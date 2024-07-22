@@ -5,13 +5,13 @@ import cartopy.crs as ccrs
 from cartopy.mpl import ticker
 import cartopy
 import numpy as np
-from multiple_sta_dataset import multiple_station_dataset
+from multiple_sta_dataset import MultipleStationDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import torch
 
 
-class Plot_Train_Test_Data:
+class PlotTrainTestData:
     @staticmethod
     def event_histogram(
         train_catalog=None, test_catalog=None, key=None, xlabel=None, title=None
@@ -26,6 +26,7 @@ class Plot_Train_Test_Data:
         if title:
             ax.set_title(f"{title}")
         return fig, ax
+
     @staticmethod
     def event_map(train_catalog=None, test_catalog=None, title=None):
         src_crs = ccrs.PlateCarree()
@@ -76,6 +77,7 @@ class Plot_Train_Test_Data:
             ax_map.set_title(f"{title}")
         ax_map.legend()
         return fig, ax_map
+
     @staticmethod
     def pga_histogram(traces_catalog=None, test_year=None, title=None):
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -112,12 +114,12 @@ class Plot_Train_Test_Data:
         return fig, ax
 
 
-class Increase_High_Data_Test:
+class IncreaseHighDataTest:
     @staticmethod
     def load_dataset_into_list(
         data_path, oversample_rate=1, bias_to_close_station=False
     ):
-        dataset = multiple_station_dataset(
+        dataset = MultipleStationDataset(
             data_path,
             mode="train",
             mask_waveform_sec=3,
@@ -143,6 +145,7 @@ class Increase_High_Data_Test:
             ).tolist()
             origin_PGA.extend(tmp_pga)
         return origin_PGA
+
     @staticmethod
     def plot_pga_histogram(
         bias_closed_sta_PGA=None,

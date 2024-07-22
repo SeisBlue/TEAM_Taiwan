@@ -5,6 +5,7 @@ import numpy as np
 
 Afile_path = "./events_traces_catalog"
 
+
 def plot_event_distribution(catalog, output_path=None):
     fig, ax = plt.subplots(figsize=(7, 7))
     sns.histplot(catalog, x="magnitude", hue="from", alpha=1, ax=ax)
@@ -15,6 +16,7 @@ def plot_event_distribution(catalog, output_path=None):
     if output_path:
         fig.savefig(f"{output_path}/event_distribution.png", dpi=300)
     return fig, ax
+
 
 def plot_trace_distribution(trace, output_path=None):
     label = ["2", "3", "4", "5-", "5+", "6-", "6+", "7"]
@@ -31,6 +33,7 @@ def plot_trace_distribution(trace, output_path=None):
     if output_path:
         fig.savefig(f"{output_path}/traces_distribution.png", dpi=300)
     return fig, ax
+
 
 before_catalog = pd.read_csv(f"{Afile_path}/2009_2019_ok_events_p_arrival_abstime.csv")
 after_catalog = pd.read_csv(f"{Afile_path}/1999_2019_final_catalog.csv")

@@ -20,7 +20,7 @@ import matplotlib.patheffects as path_effects
 import math
 
 
-class Precision_Recall_Factory:
+class PrecisionRecallFactory:
     @staticmethod
     def pga_to_intensity(value):
         pga_threshold = np.log10(
@@ -135,7 +135,7 @@ class TaiwanIntensity:
         return ticks
 
 
-class Intensity_Plotter:
+class IntensityPlotter:
     @staticmethod
     def plot_intensity_map(
         trace_info=None,
@@ -666,7 +666,7 @@ class Intensity_Plotter:
         return fig, ax_map
 
 
-class Warning_Time_Plotter:
+class WarningTimePlotter:
     @staticmethod
     def warning_map(
         trace_info=None,
@@ -842,6 +842,7 @@ class Warning_Time_Plotter:
         cbar.set_label("Warning time (sec)")
 
         return fig, ax_map
+
     @staticmethod
     def warning_time_hist(
         prediction=None,
@@ -1047,7 +1048,7 @@ class Warning_Time_Plotter:
         return fig, ax
 
 
-class Triggered_Map:
+class TriggeredMap:
     @staticmethod
     def plot_station_map(
         trace_info=None,
@@ -1096,10 +1097,7 @@ class Triggered_Map:
         gd = Geodesic()
         geoms = []
         if min_epdis:
-            P_radius = (
-            min_epdis
-            + sec * Pwave_vel
-            ) * 1000
+            P_radius = (min_epdis + sec * Pwave_vel) * 1000
         else:
             P_radius = (
                 trace_info["epdis (km)"][
@@ -1218,7 +1216,7 @@ class Triggered_Map:
         return waveforms_fig, waveforms_ax
 
 
-class Residual_Plotter:
+class ResidualPlotter:
     @staticmethod
     def residual_with_attribute(
         prediction_with_info=None,
@@ -1338,7 +1336,7 @@ class Residual_Plotter:
         return fig, ax_map
 
 
-class Rolling_Warning:
+class RollingWarning:
     def __init__(self, label_type="pga"):
         self.label_type = label_type
         if self.label_type == "pga":
@@ -1393,9 +1391,8 @@ class Rolling_Warning:
 
         return warning_df_with_station_info
 
-    def plot_maximum_warning_time(
-        self, warning_df_with_station_info=None, time_list=None
-    ):
+    @staticmethod
+    def plot_maximum_warning_time(warning_df_with_station_info=None, time_list=None):
         fig, ax = plt.subplots()
         for filter_key, label in zip(
             warning_df_with_station_info["max_from_column"].unique(), time_list
@@ -1415,7 +1412,8 @@ class Rolling_Warning:
         plt.legend()
         return fig, ax
 
-    def calculate_statistical_value(self, warning_df_with_station_info, filter=None):
+    @staticmethod
+    def calculate_statistical_value(warning_df_with_station_info, filter=None):
         maximum_warning_time = warning_df_with_station_info["max_warning_time"]
         maximum_warning_time = maximum_warning_time[maximum_warning_time > 0]
         if filter:
@@ -1440,8 +1438,8 @@ class Rolling_Warning:
 
         return output
 
+    @staticmethod
     def plot_maximum_warning_time_histogram(
-        self,
         warning_df_with_station_info=None,
         statistical_dict=None,
         filter=None,
@@ -1470,8 +1468,9 @@ class Rolling_Warning:
             ax.set_title(title, fontsize=15)
         return fig, ax
 
+    @staticmethod
     def plot_event_warning_time_with_distance_range(
-        self, event_info=None, distance_range=None, event_loc=None, title=None
+        event_info=None, distance_range=None, event_loc=None, title=None
     ):
         """
         distance_range: 2 elements list, [close distance, far distance], unit: km
@@ -1572,7 +1571,7 @@ class Rolling_Warning:
         return fig, ax_map
 
 
-class Consider_Angle:
+class ConsiderAngle:
     @staticmethod
     def calculate_angle(x1, y1, x2, y2):
         # 計算兩點之間的斜率
@@ -1596,16 +1595,24 @@ class Consider_Angle:
 
     @staticmethod
     def plot_pga_attenuation(prediction=None):
-        fig,ax=plt.subplots()
-        scatter=ax.scatter(prediction["dist"],prediction["PGA"],c=prediction["angle"],alpha=0.5)
+        fig, ax = plt.subplots()
+        scatter = ax.scatter(
+            prediction["dist"], prediction["PGA"], c=prediction["angle"], alpha=0.5
+        )
         ax.set_ylabel(r"PGA log(${m/s^2}$)")
         ax.set_xlabel("hypocentral distance (km)")
         cbar = plt.colorbar(scatter)
         cbar.set_label("angle (degree)")
-        return fig,ax
+        return fig, ax
 
     @staticmethod
-    def angle_map(stations=None,init_sta_lon=None,init_sta_lat=None,event_lon=None,event_lat=None):
+    def angle_map(
+        stations=None,
+        init_sta_lon=None,
+        init_sta_lat=None,
+        event_lon=None,
+        event_lat=None,
+    ):
         src_crs = ccrs.PlateCarree()
         fig, ax_map = plt.subplots(subplot_kw={"projection": src_crs}, figsize=(7, 7))
         ax_map.coastlines("10m")
@@ -1647,4 +1654,4 @@ class Consider_Angle:
         cbar = plt.colorbar(scatter)
 
         cbar.set_label(r"angle (degree)")
-        return fig,ax_map
+        return fig, ax_map

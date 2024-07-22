@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 
 sys.path.append("..")
-from analysis import Intensity_Plotter
+from model_performance_analysis.analysis import IntensityPlotter
 
 mask_sec = 3
 event_lon = 121.66
@@ -52,7 +52,7 @@ eventmeta = pd.DataFrame(
     {"longitude": [event_lon], "latitude": [event_lat], "magnitude": [magnitude]}
 )
 
-Intensity_Plotter.plot_intensity_map(
+IntensityPlotter.plot_intensity_map(
     trace_info=max_prediction,
     eventmeta=eventmeta,
     label_type="pga",

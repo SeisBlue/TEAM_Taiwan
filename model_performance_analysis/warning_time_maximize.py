@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from analysis import Rolling_Warning, Warning_Time_Plotter
+from analysis import RollingWarning, WarningTimePlotter
 
 eq_id = 24784.0
 label_type = "pga"
@@ -19,7 +19,7 @@ prediction5_with_info = pd.read_csv(f"{path}/5 sec model11 with all info.csv")
 prediction7_with_info = pd.read_csv(f"{path}/7 sec model11 with all info.csv")
 prediction10_with_info = pd.read_csv(f"{path}/10 sec model11 with all info.csv")
 
-rw_instance = Rolling_Warning(label_type="pga")
+rw_instance = RollingWarning(label_type="pga")
 warning_df_with_station_info = (
     rw_instance.calculate_warning_time_at_different_issue_timing(
         prediction_in_different_timing=[
@@ -42,7 +42,7 @@ fig, ax = rw_instance.plot_maximum_warning_time(
 event_info = warning_df_with_station_info[
     warning_df_with_station_info["EQ_ID"] == eq_id
 ]
-fig,ax=rw_instance.plot_event_warning_time_with_distance_range(
+fig, ax = rw_instance.plot_event_warning_time_with_distance_range(
     event_info=event_info, distance_range=[20, 60], event_loc=[120.543833333333, 22.922]
 )
 
@@ -85,7 +85,7 @@ for sec, events_prediction in zip(
     ],
 ):
     single_event_prediction = events_prediction.query(f"EQ_ID=={eq_id}")
-    fig, ax = Warning_Time_Plotter.p_wave_pga_travel_time(
+    fig, ax = WarningTimePlotter.p_wave_pga_travel_time(
         event_prediction=single_event_prediction,
         title=f"EQ ID: {eq_id} {sec} sec prediction with p-wave and pga travel time",
     )

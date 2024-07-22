@@ -1,15 +1,17 @@
 import pandas as pd
 import sys
 
-from analysis import Intensity_Plotter
+from analysis import IntensityPlotter
 
-path="../predict/station_blind_Vs30_bias2closed_station_2016"
-mask_after_sec=7
-prediction_with_info=pd.read_csv(f"{path}/{mask_after_sec} sec model11 with all info.csv")
+path = "../predict/station_blind_Vs30_bias2closed_station_2016"
+mask_after_sec = 7
+prediction_with_info = pd.read_csv(
+    f"{path}/{mask_after_sec}_sec_model11_with_all_info.csv"
+)
 # ===========plot mag>=5.5===========
 mag5_5_prediction = prediction_with_info.query("magnitude>=5.5")
 label_type = "pga"
-fig, ax = Intensity_Plotter.plot_true_predicted(
+fig, ax = IntensityPlotter.plot_true_predicted(
     y_true=mag5_5_prediction["answer"],
     y_pred=mag5_5_prediction["predict"],
     quantile=False,
@@ -22,7 +24,7 @@ fig, ax = Intensity_Plotter.plot_true_predicted(
 # ===========check prediction in magnitude===========
 
 label = "pga"
-fig, ax = Intensity_Plotter.plot_true_predicted(
+fig, ax = IntensityPlotter.plot_true_predicted(
     y_true=prediction_with_info["answer"][prediction_with_info["magnitude"] >= 5],
     y_pred=prediction_with_info["predict"][prediction_with_info["magnitude"] >= 5],
     quantile=False,

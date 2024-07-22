@@ -7,7 +7,7 @@ import re
 from obspy.geodetics import gps2dist_azimuth 
 
 sys.path.append("../..")
-from read_tsmip import read_tsmip, get_peak_value, get_integrated_stream
+from data_preprocess.read_tsmip import read_tsmip, get_peak_value, get_integrated_stream
 
 # read traces catalog
 waveform_path = "../../data/0918_M6.8_1319_1330/ascii"

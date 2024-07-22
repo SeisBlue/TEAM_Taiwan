@@ -5,7 +5,7 @@ from sklearn.metrics import confusion_matrix
 
 
 sys.path.append("..")
-from analysis import Precision_Recall_Factory
+from model_performance_analysis.analysis import PrecisionRecallFactory
 
 mask_sec = 3
 event_lon = 121.66
@@ -64,9 +64,11 @@ recall = matrix[0][0] / np.sum(matrix, axis=1)[0]
 
 intensity = ["0", "1", "2", "3", "4", "5-", "5+", "6-", "6+", "7"]
 max_prediction["predicted_intensity"] = max_prediction["max_predict"].apply(
-    Precision_Recall_Factory.pga_to_intensity
+    PrecisionRecallFactory.pga_to_intensity
 )
-max_prediction["answer_intensity"] = max_prediction["PGA"].apply(Precision_Recall_Factory.pga_to_intensity)
+max_prediction["answer_intensity"] = max_prediction["PGA"].apply(
+    PrecisionRecallFactory.pga_to_intensity
+)
 
 intensity_confusion_matrix = confusion_matrix(
     max_prediction["answer_intensity"],
@@ -74,7 +76,7 @@ intensity_confusion_matrix = confusion_matrix(
     labels=intensity,
 )
 
-fig, ax = Precision_Recall_Factory.plot_intensity_confusion_matrix(
+fig, ax = PrecisionRecallFactory.plot_intensity_confusion_matrix(
     intensity_confusion_matrix
 )
 # fig.savefig("confusion_matrix.png", dpi=300)

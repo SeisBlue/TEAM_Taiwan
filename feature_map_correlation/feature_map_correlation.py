@@ -8,18 +8,19 @@ from tqdm import tqdm
 import os
 from scipy.ndimage import zoom
 import sys
+
 sys.path.append("..")
-from data.multiple_sta_dataset import multiple_station_dataset
-from model.CNN_Transformer_Mixtureoutput_TEAM import CNN_feature_map
+from data.multiple_sta_dataset import MultipleStationDataset
+from model.CNN_Transformer_Mixtureoutput_TEAM import CnnFeatureMap
 import os
 from scipy.signal import hilbert
-from tlcc_analysis import Plotter,Calculator
+from tlcc_analysis import Plotter, Calculator
 
 
 mask_after_sec = 10
 sample_rate = 200
 label = "pga"
-data = multiple_station_dataset(
+data = MultipleStationDataset(
     "../data/TSMIP_1999_2019_Vs30.hdf5",
     mode="test",
     mask_waveform_sec=mask_after_sec,
@@ -39,7 +40,7 @@ num = 11
 path = f"../model/model{num}.pt"
 emb_dim = 150
 mlp_dims = (150, 100, 50, 30, 10)
-CNN_model = CNN_feature_map(mlp_input=5665).cuda()
+CNN_model = CnnFeatureMap(mlp_input=5665).cuda()
 
 full_model_parameter = torch.load(path)
 # ===========load CNN parameter==============
@@ -123,9 +124,11 @@ for key, index in tqdm(zip(eq_first_index.keys(), eq_first_index.values())):
     # plot 24784 input waveform
     if key == 24784:
         for i in range(not_padding_station_number):
-            single_waveform=waveform[i]
-            input_station=input_station_list[i]
-            fig, ax = Plotter.plot_waveform(single_waveform, key, input_station,index=i)
+            single_waveform = waveform[i]
+            input_station = input_station_list[i]
+            fig, ax = Plotter.plot_waveform(
+                single_waveform, key, input_station, index=i
+            )
 
     cnn_input = torch.DoubleTensor(waveform).float().cuda()
     cnn_output, layer_output = CNN_model(cnn_input)
@@ -150,7 +153,7 @@ for key, index in tqdm(zip(eq_first_index.keys(), eq_first_index.values())):
         component_dict[f"{component}_instantaneous_phase"] = instantaneous_phase
         component_dict[f"{component}_instantaneous_freq"] = instantaneous_frequency
 
-    for attribute in component_dict: #calculate correlation to different attribute
+    for attribute in component_dict:  # calculate correlation to different attribute
         for i in range(not_padding_station_number):
             correlation_starttime = p_picks[i] - sample_rate
             correlation_endtime = p_picks[0] + (mask_after_sec + 1) * sample_rate
@@ -197,10 +200,20 @@ for key, index in tqdm(zip(eq_first_index.keys(), eq_first_index.values())):
 
             if key == 24784:  # plot
                 fig, ax = Plotter.plot_correlation_curve_with_shift_time(
-                    delay_values, tlcc_values, key, attribute,index=i,mask_after_sec=mask_after_sec, output_path=None
+                    delay_values,
+                    tlcc_values,
+                    key,
+                    attribute,
+                    index=i,
+                    mask_after_sec=mask_after_sec,
+                    output_path=None,
                 )
-                attribute_arr=Calculator.normalize_to_zero_one(component_dict[attribute][i])
-                resized_feature_map=Calculator.normalize_to_zero_one(resized_feature_map[i])
+                attribute_arr = Calculator.normalize_to_zero_one(
+                    component_dict[attribute][i]
+                )
+                resized_feature_map = Calculator.normalize_to_zero_one(
+                    resized_feature_map[i]
+                )
                 fig, ax = Plotter.plot_attribute_with_feature_map(
                     attribute_arr,
                     resized_feature_map,
@@ -215,7 +228,7 @@ for key, index in tqdm(zip(eq_first_index.keys(), eq_first_index.values())):
 
 output_path = f"{output_path}/{mask_after_sec} sec cnn feature map"
 
-for attribute in attribute_dict: #statistical analysis
+for attribute in attribute_dict:  # statistical analysis
     TLCC_mean = np.round(
         np.array(attribute_dict[attribute]["tlcc_max_correlation"]).mean(), 2
     )
@@ -269,4 +282,6 @@ attributes = [
     "EW frequency",
 ]
 output_path = "./predict/station_blind_Vs30_bias2closed_station_2016"
-fig, ax = Plotter.correlation_with_attributes_heat_map(data, attributes, output_path=None)
+fig, ax = Plotter.correlation_with_attributes_heat_map(
+    data, attributes, output_path=None
+)

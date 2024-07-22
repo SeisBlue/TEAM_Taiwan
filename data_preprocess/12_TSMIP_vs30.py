@@ -87,7 +87,7 @@ ax_map.scatter(
 )
 ax_map.set_title("Vs30 from egdt")
 ax_map.legend()
-# fig.savefig("./events_traces_catalog/Vs30 map.png",dpi=300)
+# fig.savefig("./events_traces_catalog/Vs30_map.png", dpi=300)
 
 
 file_path = "../data/station_information"
@@ -96,7 +96,6 @@ file_path = "../data/station_information"
 #     os.getcwd()
 #     input_grd_file = f"{file_path}/Vs30ofTaiwan.grd"  # 輸入GRD檔案的路徑
 #     output_xyz_file = f"{file_path}/Vs30ofTaiwan.xyz"  # 輸出XYZ檔案的路徑
-
 #     grd_to_xyz(input_grd_file, output_xyz_file)
 xyz_file = f"{file_path}/Vs30ofTaiwan.xyz"
 vs30_table = pd.read_csv(xyz_file, sep="\s+", header=None, names=["x", "y", "Vs30"])

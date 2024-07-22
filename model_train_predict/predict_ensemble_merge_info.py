@@ -8,21 +8,22 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import sys
+
 sys.path.append("..")
 from model.CNN_Transformer_Mixtureoutput_TEAM import (
     CNN,
     MDN,
     MLP,
-    PositionEmbedding_Vs30,
+    PositionembeddingVs30,
     TransformerEncoder,
-    full_model,
+    FullModel,
 )
-from data.multiple_sta_dataset import multiple_station_dataset
-from model_performance_analysis.analysis import Intensity_Plotter
+from data.multiple_sta_dataset import MultipleStationDataset
+from model_performance_analysis.analysis import IntensityPlotter
 
 mask_after_sec = 7
 label = "pga"
-data = multiple_station_dataset(
+data = MultipleStationDataset(
     "../data/TSMIP_1999_2019_Vs30.hdf5",
     mode="test",
     mask_waveform_sec=mask_after_sec,
@@ -39,11 +40,11 @@ for num in [11]:
     emb_dim = 150
     mlp_dims = (150, 100, 50, 30, 10)
     CNN_model = CNN(mlp_input=5665).cuda()
-    pos_emb_model = PositionEmbedding_Vs30(emb_dim=emb_dim).cuda()
+    pos_emb_model = PositionembeddingVs30(emb_dim=emb_dim).cuda()
     transformer_model = TransformerEncoder()
     mlp_model = MLP(input_shape=(emb_dim,), dims=mlp_dims).cuda()
     mdn_model = MDN(input_shape=(mlp_dims[-1],)).cuda()
-    full_Model = full_model(
+    full_Model = FullModel(
         CNN_model,
         pos_emb_model,
         transformer_model,
@@ -115,7 +116,7 @@ for num in [11]:
     # output_df.to_csv(
     #     f"./predict/model {num} {mask_after_sec} sec prediction.csv", index=False
     # )
-    fig, ax = Intensity_Plotter.true_predicted(
+    fig, ax = IntensityPlotter.true_predicted(
         y_true=output_df["answer"],
         y_pred=output_df["predict"],
         quantile=False,
@@ -178,7 +179,7 @@ trace_merge_catalog.drop(
 trace_merge_catalog.rename(columns={"elevation (m)": "elevation"}, inplace=True)
 
 
-data_path = "D:/TEAM_TSMIP/data/TSMIP_1999_2019.hdf5"
+data_path = "../data/TSMIP_1999_2019.hdf5"
 dataset = h5py.File(data_path, "r")
 for eq_id in ensemble_predict["EQ_ID"].unique():
     eq_id = int(eq_id)

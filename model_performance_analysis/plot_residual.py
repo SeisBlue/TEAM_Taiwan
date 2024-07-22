@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from analysis import Residual_Plotter
+from analysis import ResidualPlotter
 
 mask_after_sec = 7
 test_year = 2016
@@ -20,7 +20,7 @@ false_alarm = (prediction_with_info["predict"] >= np.log10(0.25)) & (
 wrong_predict = prediction_with_info[miss_alarm | false_alarm]
 
 for column in prediction_with_info.columns:
-    fig, ax = Residual_Plotter.residual_with_attribute(
+    fig, ax = ResidualPlotter.residual_with_attribute(
         prediction_with_info=prediction_with_info,
         column=column,
         single_case_check=24784.0,
@@ -35,7 +35,7 @@ for column in prediction_with_info.columns:
     # )
 
 # plot event residual on map
-fig, ax = Residual_Plotter.single_event_residual_map(
+fig, ax = ResidualPlotter.single_event_residual_map(
     prediction_with_info=prediction_with_info,
     eq_id=24784.0,
     title=f"{mask_after_sec} sec 2016 Meinong earthquake residual in prediction",
@@ -59,13 +59,13 @@ grouby_sta = grouby_sta[~grouby_sta["predict_residual", f"std"].isna()]
 max_abs_difference = abs(grouby_sta["predict_residual", "mean"]).max()
 negative_max_difference = -max_abs_difference
 
-fig, ax = Residual_Plotter.events_station_map(
+fig, ax = ResidualPlotter.events_station_map(
     grouby_sta=grouby_sta,
     column="mean",
     cmap="seismic",
     title=f"{mask_after_sec} sec residual mean in 2016 prediction",
 )
-fig, ax = Residual_Plotter.events_station_map(
+fig, ax = ResidualPlotter.events_station_map(
     grouby_sta=grouby_sta,
     column="std",
     cmap="Reds",

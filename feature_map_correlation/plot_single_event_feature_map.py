@@ -10,14 +10,14 @@ import os
 import sys
 
 sys.path.append("..")
-from model.CNN_Transformer_Mixtureoutput_TEAM import CNN_feature_map
-from data.multiple_sta_dataset import multiple_station_dataset
+from model.CNN_Transformer_Mixtureoutput_TEAM import CnnFeatureMap
+from data.multiple_sta_dataset import MultipleStationDataset
 
 mask_after_sec = 5
 sample_rate = 200
 eq_id = 24784
 label = "pga"
-data = multiple_station_dataset(
+data = MultipleStationDataset(
     "D:/TEAM_TSMIP/data/TSMIP_1999_2019_Vs30.hdf5",
     mode="test",
     mask_waveform_sec=mask_after_sec,
@@ -35,7 +35,7 @@ single_event_prediction = predict.query(f"EQ_ID=={eq_id}")
 device = torch.device("cuda")
 num = 11
 model_path = f"../model/model{num}.pt"
-CNN_model = CNN_feature_map(mlp_input=5665).cuda()
+CNN_model = CnnFeatureMap(mlp_input=5665).cuda()
 
 # ===========load CNN parameter==============
 full_model_parameter = torch.load(model_path)

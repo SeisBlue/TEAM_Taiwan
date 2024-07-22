@@ -2,7 +2,7 @@ import pandas as pd
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import interpolate,PchipInterpolator
+from scipy.interpolate import interpolate, PchipInterpolator
 from read_tsmip import read_tsmip, get_peak_value
 
 """
@@ -18,7 +18,14 @@ traces["p_arrival_abs_time"] = pd.to_datetime(
     traces["p_arrival_abs_time"], format="%Y-%m-%d %H:%M:%S"
 )
 
-dict = {"station_name":[],"sta_latitude":[],"sta_longitude":[],"sampling_rate": [], "origin_PGA": [], "resampled_PGA": []}
+dict = {
+    "station_name": [],
+    "sta_latitude": [],
+    "sta_longitude": [],
+    "sampling_rate": [],
+    "origin_PGA": [],
+    "resampled_PGA": [],
+}
 for i in range(len(traces)):
     print(f"{i}/{len(traces)}")
     year = str(traces["year"][i])
@@ -33,7 +40,6 @@ for i in range(len(traces)):
         dict["sta_latitude"].append(traces["latitude"][i])
         dict["sta_longitude"].append(traces["longitude"][i])
         dict["sampling_rate"].append(sampling_rate)
-        
 
         pick_point = int(np.round(traces["p_pick_sec"][i] * sampling_rate, 0))
         waveform.detrend(type="demean")
@@ -41,22 +47,21 @@ for i in range(len(traces)):
         origin_pga = 10 ** get_peak_value(waveform, pick_point=pick_point)[0] * 100
         dict["origin_PGA"].append(origin_pga)
 
-
         for channel in range(len(waveform)):
             print(max(waveform[channel].data))
-            duration=len(waveform[channel].data)/sampling_rate
-            origin_x=np.linspace(0,duration,int(len(waveform[channel].data)))
-            resample_x=np.linspace(0,duration,int(target_sampling_rate*duration))
-            interpolater= PchipInterpolator(origin_x, waveform[channel].data)
+            duration = len(waveform[channel].data) / sampling_rate
+            origin_x = np.linspace(0, duration, int(len(waveform[channel].data)))
+            resample_x = np.linspace(0, duration, int(target_sampling_rate * duration))
+            interpolater = PchipInterpolator(origin_x, waveform[channel].data)
             resample_waveform = interpolater(resample_x)
-            
+
             # fig,ax=plt.subplots(2,1)
             # ax[0].plot(origin_x, waveform[channel].data)
             # ax[0].axvline(traces["p_pick_sec"][i],c="r")
             # ax[1].plot(resample_x, resample_waveform)
             # ax[1].axvline(traces["p_pick_sec"][i],c="r")
-            waveform[channel].data=resample_waveform
-            waveform[channel].stats.sampling_rate=target_sampling_rate
+            waveform[channel].data = resample_waveform
+            waveform[channel].stats.sampling_rate = target_sampling_rate
             print(max(waveform[channel].data))
 
         pick_point = int(np.round(traces["p_pick_sec"][i] * target_sampling_rate, 0))
@@ -68,7 +73,6 @@ for i in range(len(traces)):
 output = pd.DataFrame(dict)
 output["residual"] = output["origin_PGA"] - output["resampled_PGA"]
 # output.to_csv(f"{output_path}/statistic_sampling_rate_new.csv", index=False)
-
 
 
 fig, ax = plt.subplots()

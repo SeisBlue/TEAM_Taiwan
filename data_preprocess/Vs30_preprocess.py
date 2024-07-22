@@ -4,10 +4,12 @@ from numpy import sin, cos, tan, radians
 import math
 from scipy.spatial import distance
 
+
 def grd_to_xyz(input_grd, output_xyz):
     with pygmt.clib.Session() as session:
         # 使用pygmt.grd2xyz進行轉換
         session.call_module("grd2xyz", f"{input_grd} > {output_xyz}")
+
 
 def twd67_to_97(x, y):
     """_summary_

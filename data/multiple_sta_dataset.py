@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import Dataset, Subset, Sampler
 
 
-class intensity_classifier:
+class IntensityClassifier:
     def __init__(self, label=None):
         if label == "pga":
             self.threshold = np.log10([0.008, 0.025, 0.08, 0.25, 0.8, 2.5, 8])
@@ -77,7 +77,7 @@ class OversampleCustomSampler(Sampler):
         return len(self.indices)
 
 
-class multiple_station_dataset(Dataset):
+class MultipleStationDataset(Dataset):
     def __init__(
         self,
         data_path,
@@ -246,7 +246,7 @@ class multiple_station_dataset(Dataset):
             p_picks = np.concatenate((p_picks, oversampled_picks), axis=0)
         if weight_label:
             labels = labels.flatten()
-            classifier = intensity_classifier(label=label_key)
+            classifier = IntensityClassifier(label=label_key)
             output_array = classifier.classify(labels)
             label_class, counts = np.unique(output_array, return_counts=True)
             label_counts = {}
@@ -464,7 +464,7 @@ class multiple_station_dataset(Dataset):
             return outputs
 
 
-class multiple_station_dataset_outputs(Dataset):
+class MultipleStationDatasetOutputs(Dataset):
     def __init__(
         self,
         data_path,
@@ -587,7 +587,7 @@ class multiple_station_dataset_outputs(Dataset):
 
             if weight_label:
                 labels = labels.flatten()
-                classifier = intensity_classifier(label=label_key)
+                classifier = IntensityClassifier(label=label_key)
                 output_array = classifier.classify(labels)
                 label_class, counts = np.unique(output_array, return_counts=True)
                 label_counts = {}

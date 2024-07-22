@@ -1,7 +1,7 @@
 import pandas as pd
 
-start_year=1999
-end_year=2008
+start_year = 1999
+end_year = 2008
 traces = pd.read_csv(
     f"./events_traces_catalog/{start_year}_{end_year}_picked_traces_p_arrival_abstime_labeled.csv"
 )
@@ -17,13 +17,9 @@ overlap_trace = pd.DataFrame()
 for eq_id in catalog["EQ_ID"]:
     tmp_traces = traces.query(f"EQ_ID == {eq_id}")
     counts = tmp_traces["station_name"].value_counts()
-
     target_station = counts[counts > 1].index.tolist()
-
     mask = tmp_traces["station_name"].isin(target_station)
-
     tmp_overlap_trace = tmp_traces[mask]
-
     overlap_trace = pd.concat([overlap_trace, tmp_overlap_trace])
 
 # 將instrument 編號，設定優先順序
@@ -46,4 +42,3 @@ final_trace = pd.concat([differ_set, chosen_trace]).sort_index()
 #     f"./events_traces_catalog/{start_year}_{end_year}_picked_traces_p_arrival_abstime_labeled_nostaoverlap.csv",
 #     index=False,
 # )
-
