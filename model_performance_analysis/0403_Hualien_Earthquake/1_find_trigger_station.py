@@ -13,7 +13,7 @@ def dist(event_lat, event_lon, station_lat, station_lon):  # unit: degree
 
 
 mask_after_sec = 5
-station_info = pd.read_csv("../../data/station_information/TSMIPstations_new.csv")
+station_info = pd.read_csv("../../data/station_information/TSMIP_stations_new.csv")
 traces_info_with_vs30 = pd.read_csv(
     "../../data_preprocess/events_traces_catalog/1999_2019_final_traces_Vs30.csv"
 )

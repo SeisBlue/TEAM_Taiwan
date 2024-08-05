@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 Afile_path = "../data/Afile"
+
 ##############clean broken data and small data##############
 
-traces_catalog = pd.read_csv(f"{Afile_path}/1991-2020 traces.csv")
+traces_catalog = pd.read_csv(f"{Afile_path}/1991_2020_traces.csv")
 acc_filter = (
     (traces_catalog["pga_z"] == 0)
     | (traces_catalog["pga_ns"] == 0)
@@ -17,13 +18,13 @@ acc_filter = (
     | (traces_catalog["pga_ew"] > 1300)
 )
 broken_traces = traces_catalog[acc_filter]
-# broken_traces.to_csv(f"{Afile_path}/1991-2020 broken traces.csv", index=False)
+broken_traces.to_csv(f"{Afile_path}/1991_2020_broken_traces.csv", index=False)
 
 traces_catalog.drop(traces_catalog[acc_filter].index, inplace=True)
-# traces_catalog.to_csv(f"{Afile_path}/1991-2020 traces no broken data.csv", index=False)
+traces_catalog.to_csv(f"{Afile_path}/1991_2020_traces_no_broken_data.csv", index=False)
 
 ##############find double event traces##############
-catalog = pd.read_csv(f"{Afile_path}/1991-2020 catalog.csv")
+catalog = pd.read_csv(f"{Afile_path}/1991_2020_catalog.csv")
 traces_ljoin_catalog = pd.merge(
     catalog[["EQ_ID", "year", "month", "day", "hour", "minute", "second"]],
     traces_catalog,
@@ -42,22 +43,22 @@ for year in range(1991, 2021):
         same_filename_filter = tmp_catalog["file_name"].isin(double_event.index)
         double_traces = tmp_catalog[same_filename_filter]
         double_traces_catalog = pd.concat([double_traces_catalog, double_traces])
-# double_traces_catalog.to_csv(f"{Afile_path}/1991-2020 double traces.csv", index=False)
+double_traces_catalog.to_csv(f"{Afile_path}/1991_2020_double_traces.csv", index=False)
 
 # clean trace double event
-traces_catalog = pd.read_csv(f"{Afile_path}/1991-2020 traces no broken data.csv")
-catalog = pd.read_csv(f"{Afile_path}/1991-2020 catalog.csv")
+traces_catalog = pd.read_csv(f"{Afile_path}/1991_2020_traces_no_broken_data.csv")
+catalog = pd.read_csv(f"{Afile_path}/1991_2020_catalog.csv")
 traces_catalog_merge = pd.merge(
     catalog[["EQ_ID", "year", "month", "day", "hour", "minute", "second"]],
     traces_catalog,
     on="EQ_ID",
 )
 
-double_event = pd.read_csv(f"{Afile_path}/1991-2020 double traces.csv")
+double_event = pd.read_csv(f"{Afile_path}/1991_2020_double_traces.csv")
 
 final_traces_catalog = pd.concat(
     [traces_catalog_merge, double_event, double_event]
 ).drop_duplicates(keep=False)
-# final_traces_catalog.to_csv(
-#     f"{Afile_path}/1991-2020 traces (no broken data, double event).csv", index=False
-# )
+final_traces_catalog.to_csv(
+    f"{Afile_path}/1991_2020_traces_no_broken_data_double_event.csv", index=False
+)

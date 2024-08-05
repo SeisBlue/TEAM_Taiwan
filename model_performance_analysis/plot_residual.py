@@ -6,7 +6,7 @@ from analysis import ResidualPlotter
 mask_after_sec = 7
 test_year = 2016
 path = f"../predict/station_blind_Vs30_bias2closed_station_{test_year}"
-output_path = f"{path}/{mask_after_sec} sec residual plots"
+output_path = f"{path}/{mask_after_sec}_sec_residual_plots"
 prediction_with_info = pd.read_csv(
     f"{path}/{mask_after_sec} sec model11 with all info.csv"
 )

@@ -92,10 +92,10 @@ with h5py.File(output, "w") as file:
         #     error_event["EQ_ID"].append(eq_id)
         #     error_event["reason"].append(reason)
         #     continue
-        # fig.savefig(f"data/cutting waveform image/{eq_id}.png")
+        # fig.savefig(f"data/cutting_waveform_image/{eq_id}.png")
     error_event_df = pd.DataFrame(error_event)
     error_event_df.to_csv(
-        "./load into hdf5 error event.csv", index=False
+        "./load_into_hdf5_error_event.csv", index=False
     )
 
 catalog.to_hdf(output, key="metadata/event_metadata", mode="a", format="table")
@@ -124,7 +124,7 @@ for eq_id in tqdm(catalog["EQ_ID"]):
         ax.set_title(
             f"EQ ID:{eq_id}, Magnitude: {magnitude}, start time: {traces_info['start_time'][j]}"
         )
-        fig.savefig(f"cut trace/{eq_id}_{trace.stats.channel}.png")
+        fig.savefig(f"cut_trace/{eq_id}_{trace.stats.channel}.png")
         plt.close()
 
 for i in range(len(traces_info["traces"])):

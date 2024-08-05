@@ -29,7 +29,7 @@ data = MultipleStationDataset(
 )
 # need station name
 data_path = "../predict/station_blind_Vs30_bias2closed_station_2016"
-predict = pd.read_csv(f"{data_path}/{mask_after_sec} sec model11 with all info.csv")
+predict = pd.read_csv(f"{data_path}/{mask_after_sec}_sec_model11_with_all_info.csv")
 single_event_prediction = predict.query(f"EQ_ID=={eq_id}")
 # ===========prepare model==============
 device = torch.device("cuda")
@@ -72,7 +72,7 @@ cnn_output, layer_output = CNN_model(cnn_input)
 
 # plot convolution layer feature map (each layer)
 for layer_num, tensor in enumerate(layer_output):  # convolution layer number
-    output_path = f"../predict/station_blind_Vs30_bias2closed_station_2016/{mask_after_sec} sec cnn feature map//layer {layer_num+1}"
+    output_path = f"../predict/station_blind_Vs30_bias2closed_station_2016/{mask_after_sec}_sec_cnn_feature_map/layer_{layer_num+1}"
     if not os.path.isdir(output_path):
         os.mkdir(output_path)
     print("layer_number", layer_num)

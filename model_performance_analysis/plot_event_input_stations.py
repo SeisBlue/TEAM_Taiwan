@@ -5,7 +5,7 @@ from analysis import TriggeredMap
 mask_after_sec = 10
 eq_id = 25900
 prediction_with_info = pd.read_csv(
-    f"../predict/station_blind_noVs30_bias2closed_station_2016/{mask_after_sec} sec ensemble 510 with all info.csv"
+    f"../predict/station_blind_noVs30_bias2closed_station_2016/{mask_after_sec}_sec_ensemble_510_with_all_info.csv"
 )
 record_prediction = prediction_with_info.query(f"EQ_ID=={eq_id}")
 first_trigger_time = min(record_prediction["p_picks"])
@@ -25,5 +25,5 @@ fig, ax = TriggeredMap.plot_station_map(
 )
 
 # fig.savefig(
-#     f"../paper image/eqid{eq_id}_{mask_after_sec}_sec_station_input.png",dpi=300
+#     f"../paper_image/eqid{eq_id}_{mask_after_sec}_sec_station_input.png",dpi=300
 # )

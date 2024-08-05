@@ -9,12 +9,12 @@ magnitude_thrshold = 5.5
 Afile_path = "../data/Afile"
 sta_path = "../data/station_information"
 traces = pd.read_csv(
-    f"{Afile_path}/1991-2020 traces (no broken data, double event).csv"
+    f"{Afile_path}/1991_2020_traces_no_broken_data_double_event.csv"
 )
-catalog = pd.read_csv(f"{Afile_path}/1991-2020 catalog.csv")
+catalog = pd.read_csv(f"{Afile_path}/1991_2020_catalog.csv")
 
 # traces station location doesn't exist
-station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv")
+station_info = pd.read_csv(f"{sta_path}/TSMIP_stations_new.csv")
 sta_filter = traces["station_name"].isin(station_info["location_code"])
 traces_exist_sta = traces[sta_filter]
 

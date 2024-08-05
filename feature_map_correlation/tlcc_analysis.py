@@ -71,7 +71,7 @@ class Plotter:
             ax[j].plot(waveform[:, j])
         ax[0].set_title(f"EQ_ID: {eq_id} input waveform{index+1},{input_station}")
         if output_path:
-            fig.savefig(f"{output_path}/3 channel input waveform{index+1}.png", dpi=300)
+            fig.savefig(f"{output_path}/3_channel_input_waveform{index+1}.png", dpi=300)
         return fig, ax
 
     @staticmethod
@@ -94,7 +94,7 @@ class Plotter:
         ax.grid(True)
         if output_path:
             fig.savefig(
-                f"{output_path}/{mask_after_sec} sec {attribute}{index+1} TLCC Analysis.png",
+                f"{output_path}/{mask_after_sec}_sec_{attribute}{index+1}_TLCC_Analysis.png",
                 dpi=300,
             )
         return fig, ax
@@ -181,7 +181,7 @@ class Plotter:
         )
         if output_path:
             fig.savefig(
-                f"{output_path}/correlation (TLCC) with {attribute} histogram.png",
+                f"{output_path}/correlation_TLCC_with_{attribute}_histogram.png",
                 dpi=300,
             )
         return fig, ax
@@ -206,7 +206,7 @@ class Plotter:
         )
         if output_path:
             fig.savefig(
-                f"{output_path}/{mask_after_sec} sec {attribute} TLCC max correlation delay time.png",
+                f"{output_path}/{mask_after_sec}_sec_{attribute}_TLCC_max_correlation_delay_time.png",
                 dpi=300,
             )
         return fig, ax
@@ -237,7 +237,7 @@ class Plotter:
         )
         if output_path:
             fig.savefig(
-                f"{output_path}/{mask_after_sec} sec {attribute} distribution of time delay with max correlation (TLCC).png",
+                f"{output_path}/{mask_after_sec}_sec_{attribute}_distribution_of_time_delay_with_max_correlation_TLCC.png",
                 dpi=300,
             )
         return fig, ax

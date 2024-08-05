@@ -12,7 +12,7 @@ sta_path = "../data/station_information"
 start_year = 1999
 end_year = 2019
 trace = pd.read_csv(f"./events_traces_catalog/{start_year}_{end_year}_final_traces.csv")
-station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv")
+station_info = pd.read_csv(f"{sta_path}/TSMIP_stations_new.csv")
 vs30_info = pd.read_csv(f"{sta_path}/egdt_TSMIP_station_vs30.csv")
 
 merge_traces = pd.merge(

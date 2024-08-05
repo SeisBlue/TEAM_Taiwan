@@ -15,7 +15,7 @@ catalog = pd.read_csv(
 traces = pd.read_csv(
     f"./events_traces_catalog/{start_year}_{end_year}_final_traces_Vs30.csv"
 )
-station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv")
+station_info = pd.read_csv(f"{sta_path}/TSMIP_stations_new.csv")
 traces.loc[traces.index, "p_pick_sec"] = pd.to_timedelta(
     traces["p_pick_sec"], unit="sec"
 )
@@ -95,7 +95,7 @@ with h5py.File(output, "w") as file:
         # fig.savefig(f"data/cutting waveform image/{eq_id}.png")
     error_event_df = pd.DataFrame(error_event)
     error_event_df.to_csv(
-        "./events_traces_catalog/load into hdf5 error event.csv", index=False
+        "./events_traces_catalog/load_into_hdf5_error_event.csv", index=False
     )
 
 catalog.to_hdf(output, key="metadata/event_metadata", mode="a", format="table")

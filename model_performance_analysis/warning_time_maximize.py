@@ -12,12 +12,12 @@ if label_type == "pgv":
     intensity = "V"
 
 path = "../predict/station_blind_Vs30_bias2closed_station_2016"
-output_path = f"{path}/mag bigger 5.5 predict"
+output_path = f"{path}/mag_bigger_5_5_predict"
 
-prediction3_with_info = pd.read_csv(f"{path}/3 sec model11 with all info.csv")
-prediction5_with_info = pd.read_csv(f"{path}/5 sec model11 with all info.csv")
-prediction7_with_info = pd.read_csv(f"{path}/7 sec model11 with all info.csv")
-prediction10_with_info = pd.read_csv(f"{path}/10 sec model11 with all info.csv")
+prediction3_with_info = pd.read_csv(f"{path}/3_sec_model_11_with_all_info.csv")
+prediction5_with_info = pd.read_csv(f"{path}/5_sec_model_11_with_all_info.csv")
+prediction7_with_info = pd.read_csv(f"{path}/7_sec_model_11_with_all_info.csv")
+prediction10_with_info = pd.read_csv(f"{path}/10_sec_model_11_with_all_info.csv")
 
 rw_instance = RollingWarning(label_type="pga")
 warning_df_with_station_info = (

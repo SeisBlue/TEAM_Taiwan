@@ -168,7 +168,10 @@ class IncreaseHighDataTest:
         ax.text(
             0.01,
             0.8,
-            f"high intensity rate:\norigin: {np.round(origin_high_intensity_rate,2)}\noversampled: {np.round(oversampled_high_intensity_rate,2)}\nbias to station: {np.round(bias_closed_sta_high_intensity_rate,2)}",
+            f"high intensity rate:\n"
+            f"origin: {np.round(origin_high_intensity_rate,2)}\n"
+            f"oversampled: {np.round(oversampled_high_intensity_rate,2)}\n"
+            f"bias to station: {np.round(bias_closed_sta_high_intensity_rate,2)}",
             transform=ax.transAxes,
             fontsize=12,
         )
@@ -189,7 +192,7 @@ def plot_station_distribution(stations=None, title=None):
 
     ax_map.add_feature(
         cartopy.feature.OCEAN, zorder=2, edgecolor="k"
-    )  # zorder越大的圖層 越上面
+    )  # zorder 越大的圖層 越上面
 
     sta = ax_map.scatter(
         stations["longitude"],

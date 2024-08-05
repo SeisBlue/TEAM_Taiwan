@@ -44,7 +44,7 @@ for i in range(len(asc_files)):
 
 output_df = pd.DataFrame(output_df)
 
-station_info = pd.read_csv("../../data/station_information/TSMIPstations_new.csv")
+station_info = pd.read_csv("../../data/station_information/TSMIP_stations_new.csv")
 
 output_df = pd.merge(
     output_df,

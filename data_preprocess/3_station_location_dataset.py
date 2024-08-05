@@ -4,7 +4,7 @@ import pandas as pd
 from read_tsmip import *
 
 sta_path = "../data/station_information"
-station_info = pd.read_csv(f"{sta_path}/TSMIPstations.csv")
+station_info = pd.read_csv(f"{sta_path}/TSMIP_stations.csv")
 station_code = station_info["station"].str.extract(r"(.*?)[(]")
 location_code = station_info["station"].str.extract(r"[(](.*?)[)]")
 station_info.insert(1, "station_code", station_code.values)
@@ -64,8 +64,8 @@ uniqued_add_df.insert(0, "network", "TSMIP")
 station_info = pd.concat([station_info, uniqued_add_df])
 
 # data2
-CWBstation = pd.read_csv(f"{sta_path}/CWBstation.log", sep="\s+", header=None)
-CWBstation.columns = [
+CWB_station = pd.read_csv(f"{sta_path}/CWB_station.log", sep="\s+", header=None)
+CWB_station.columns = [
     "location_code",
     "longitude",
     "latitude",
@@ -73,12 +73,12 @@ CWBstation.columns = [
     "starttime",
     "endtime",
 ]
-sta_filter = CWBstation["location_code"].isin(station_info["location_code"])
-add_df = CWBstation[~sta_filter][
+sta_filter = CWB_station["location_code"].isin(station_info["location_code"])
+add_df = CWB_station[~sta_filter][
     ["location_code", "longitude", "latitude", "elevation (m)"]
 ]
 add_df.insert(0, "network", "TSMIP")
 add_df.insert(1, "station_code", np.nan)
 station_info = pd.concat([station_info, add_df])
 station_info.sort_values(by=["location_code"], inplace=True)
-# station_info.to_csv(f"{sta_path}/TSMIPstations_new.csv", index=False)
+# station_info.to_csv(f"{sta_path}/TSMIP_stations_new.csv", index=False)

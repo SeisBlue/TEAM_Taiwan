@@ -4,7 +4,7 @@ from visualize import plot_received_traces_station_map
 sta_path = "data/station_information"
 input_path = "predict/station_blind_Vs30_bias2closed_station_2016"
 output_path = "./data preprocess/events_traces_catalog"
-prediction = pd.read_csv(f"{input_path}/model 11 5 sec prediction.csv")
+prediction = pd.read_csv(f"{input_path}/model_11_5_sec_prediction.csv")
 station_info = pd.read_csv(f"{sta_path}/TSMIPstations_new.csv")
 merge_traces = pd.merge(
     prediction,
@@ -30,6 +30,6 @@ title = "Number of records received by stations in test data"
 fig, ax = plot_received_traces_station_map(total_station_value_counts, title=title)
 
 # total_station_value_counts.to_csv(
-#     "predict/station_blind_Vs30_bias2closed_station_2016/Number of records received by stations in train data.csv",
+#     "predict/station_blind_Vs30_bias2closed_station_2016/number_of_records_received_by_stations_in_train_data.csv",
 #     index=False,
 # )

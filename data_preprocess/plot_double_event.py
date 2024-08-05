@@ -6,7 +6,7 @@ from read_tsmip import read_tsmip, trace_pick_plot
 
 
 Afile_path = "../data/Afile"
-double_event = pd.read_csv(f"{Afile_path}/1991-2020 double traces.csv")
+double_event = pd.read_csv(f"{Afile_path}/1991_2020_double_traces.csv")
 double_event = double_event.query("year==2018")
 counts_file_times = double_event[["file_name", "year", "month"]].value_counts()
 error_file = {"year": [], "month": [], "file": [], "eq_num": [], "reason": []}
@@ -75,10 +75,10 @@ for (file_name, year, month), eq_num in zip(counts_file_times.index, counts_file
     plt.close()
 
 error_file_df = pd.DataFrame(error_file)
-# error_file_df.to_csv(f"{Afile_path}/double event error.csv",index=False)
+# error_file_df.to_csv(f"{Afile_path}/double_event_error.csv",index=False)
 
 # pick again error file
-error_file_df = pd.read_csv(f"{Afile_path}/double event error_new.csv")
+error_file_df = pd.read_csv(f"{Afile_path}/double_event_error_new.csv")
 cant_picking_filter = (
     (error_file_df["year"] != 2020)
     & (error_file_df["month"] != "07")
@@ -102,5 +102,5 @@ for i in range(len(cant_picking_file)):
         trace,
         file_name,
         eq_num=eq_num,
-        output_path="../data/waveform/double event picking",
+        output_path="../data/waveform/double_event_picking",
     )

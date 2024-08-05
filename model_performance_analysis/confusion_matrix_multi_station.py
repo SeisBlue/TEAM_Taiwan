@@ -6,7 +6,7 @@ import os
 from analysis import PrecisionRecallFactory
 
 path = "../predict/station_blind_Vs30_bias2closed_station_2016"
-output_path = f"{path}/model11 confusion matrix"
+output_path = f"{path}/model11_confusion_matrix"
 if not os.path.isdir(output_path):
     os.mkdir(output_path)
 
@@ -35,7 +35,7 @@ f1_curve_fig, f1_curve_ax = plt.subplots()
 precision_curve_fig, precision_curve_ax = plt.subplots()
 recall_curve_fig, recall_curve_ax = plt.subplots()
 for mask_after_sec in [3, 5, 7, 10]:
-    data = pd.read_csv(f"{path}/{mask_after_sec} sec model11 with all info.csv")
+    data = pd.read_csv(f"{path}/{mask_after_sec}_sec_model11_with_all_info.csv")
 
     predict_label = data["predict"]
     real_label = data["answer"]

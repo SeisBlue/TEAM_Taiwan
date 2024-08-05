@@ -32,7 +32,7 @@ data = MultipleStationDataset(
 )
 # need station name
 output_path = "../predict/station_blind_Vs30_bias2closed_station_2016"
-predict = pd.read_csv(f"{output_path}/{mask_after_sec} sec model11 with all info.csv")
+predict = pd.read_csv(f"{output_path}/{mask_after_sec}_sec_model11_with_all_info.csv")
 
 # ===========prepare model==============
 device = torch.device("cuda")
@@ -103,7 +103,7 @@ attribute_dict = {
 print(len(eq_first_index.keys()))
 for key, index in tqdm(zip(eq_first_index.keys(), eq_first_index.values())):
     event_output_path = (
-        f"{output_path}/{mask_after_sec} sec cnn feature map/each event/{str(key)}"
+        f"{output_path}/{mask_after_sec}_sec_cnn_feature_map/each_event/{str(key)}"
     )
     if not os.path.isdir(f"{event_output_path}"):
         os.makedirs(f"{event_output_path}")

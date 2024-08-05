@@ -31,7 +31,7 @@ cwa_merge_data = pd.merge(
 )
 
 tt_sam = pd.read_csv(
-    "../predict/station_blind_Vs30_bias2closed_station_2016/7 sec model11 with all info.csv"
+    "../predict/station_blind_Vs30_bias2closed_station_2016/7_sec_model11_with_all_info.csv"
 )
 
 ttsam_merge_data = pd.merge(

@@ -74,7 +74,7 @@ for EQ_ID in [24784, 25900]:
             label_threshold=label_threshold,
         )
 
-        # fig.savefig(f"../paper image/{EQ_ID}_mag_{event['magnitude'].values[0]}_{mask_after_sec} sec warning map.png",
+        # fig.savefig(f"../paper_image/{EQ_ID}_mag_{event['magnitude'].values[0]}_{mask_after_sec}_sec_warning_map.png",
         #             dpi=600)
         fig, ax = WarningTimePlotter.correct_warning_with_epidist(
             event_prediction=event_prediction,
@@ -82,7 +82,7 @@ for EQ_ID in [24784, 25900]:
             label_type=label_type,
             mask_after_sec=mask_after_sec,
         )
-        # fig.savefig(f"{output_path}/{EQ_ID}_mag_{event['magnitude'].values[0]}_{mask_after_sec} sec epidist vs time.png",
+        # fig.savefig(f"{output_path}/{EQ_ID}_mag_{event['magnitude'].values[0]}_{mask_after_sec}_sec_epidist_vs_time.png",
         #             dpi=300)
         fig, ax = WarningTimePlotter.warning_time_hist(
             event_prediction,
@@ -95,7 +95,7 @@ for EQ_ID in [24784, 25900]:
             bins=14,
         )
         # fig.savefig(
-        #     f"{output_path}/{EQ_ID}_mag_{event['magnitude'].values[0]}_{mask_after_sec} sec warning stations hist.png",
+        #     f"{output_path}/{EQ_ID}_mag_{event['magnitude'].values[0]}_{mask_after_sec}_sec_warning_stations_hist.png",
         #     dpi=300,
         #     bbox_inches="tight",
         # )

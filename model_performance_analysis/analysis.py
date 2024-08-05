@@ -69,7 +69,7 @@ class PrecisionRecallFactory:
             ax.set_title(title)
         if output_path:
             fig.savefig(
-                f"{output_path}/{mask_after_sec} sec intensity confusion matrix.png",
+                f"{output_path}/{mask_after_sec}_sec_intensity_confusion_matrix.png",
                 dpi=300,
             )
         return fig, ax
@@ -1456,7 +1456,11 @@ class RollingWarning:
         ax.text(
             0.6,
             0.775,
-            f"mean: {statistical_dict['mean']} s\nstd: {statistical_dict['std']} s\nmedian: {statistical_dict['median']} s\nmax: {statistical_dict['max']} s\nwarning stations: {statistical_dict['count']}",
+            f"mean: {statistical_dict['mean']} s\n"
+            f"std: {statistical_dict['std']} s\n"
+            f"median: {statistical_dict['median']} s\n"
+            f"max: {statistical_dict['max']} s\n"
+            f"warning stations: {statistical_dict['count']}",
             transform=ax.transAxes,
             fontsize=14,
         )

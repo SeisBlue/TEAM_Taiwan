@@ -14,17 +14,17 @@ fig, ax = PlotTrainTestData.event_histogram(
     train_catalog, test_catalog, key="magnitude", xlabel="magnitude"
 )
 # fig.savefig(f"paper_image/event_depth_distribution.png",dpi=300)
-# fig.savefig(f"paper_image/event depth distribution.pdf",dpi=300)
+# fig.savefig(f"paper_image/event_depth_distribution.pdf",dpi=300)
 
 # event distribution in map
 fig, ax = PlotTrainTestData.event_map(train_catalog, test_catalog)
 # fig.savefig(f"paper_image/event_distribution_map.png",dpi=300)
-# fig.savefig(f"paper_image/event distribution map.pdf",dpi=300)
+# fig.savefig(f"paper_image/event_distribution_map.pdf",dpi=300)
 
 # traces pga histogram
 fig, ax = PlotTrainTestData.pga_histogram(traces_catalog, test_year=test_year)
 # fig.savefig(f"paper_image/trace_pga_distribution.png",dpi=300)
-# fig.savefig(f"paper_image/trace pga distribution.pdf",dpi=300)
+# fig.savefig(f"paper_image/trace_pga_distribution.pdf",dpi=300)
 
 
 # test oversampling method
