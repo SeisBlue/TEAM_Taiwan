@@ -1,5 +1,6 @@
 black
 Cartopy
+cython
 h5py
 matplotlib
 mlflow

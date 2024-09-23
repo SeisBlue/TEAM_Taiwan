@@ -17,3 +17,9 @@ RUN conda update -y conda; \
 COPY docker/requirements.txt /tmp/
 RUN /opt/conda/bin/python3 -m pip install --upgrade pip; \
     /opt/conda/bin/python3 -m pip --no-cache-dir install -r /tmp/requirements.txt;
+
+RUN git clone https://github.com/cmalek/PyEarthworm.git; \
+    cd PyEarthworm; \
+    /opt/conda/bin/python3 setup.py install; \
+    cd ..; \
+    rm -rf PyEarthworm;
