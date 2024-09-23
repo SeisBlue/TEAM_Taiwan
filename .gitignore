@@ -8,6 +8,10 @@ data/*
 !data/*/.gitkeep
 !data/*.py
 
+*.csv
+*.pt
+*.json
+
 !/paper_image/.gitkeep
 /paper_image
 *.zip
