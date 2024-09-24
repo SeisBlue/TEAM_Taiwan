@@ -26,8 +26,4 @@ RUN wget http://folkworm.ceri.memphis.edu/ew-dist/v7.10.1/earthworm_7.10.1-ubunt
 ENV EW_HOME=/opt/earthworm_7.10
 
 # Install PyEarthworm
-RUN git clone https://github.com/Boritech-Solutions/PyEarthworm.git; \
-    cd PyEarthworm; \
-    /opt/conda/bin/python3 setup.py install; \
-    cd ..; \
-    rm -rf PyEarthworm;
+RUN /opt/conda/bin/python3 -m pip install git+https://github.com/Boritech-Solutions/PyEarthworm
