@@ -21,7 +21,9 @@ RUN /opt/conda/bin/python3 -m pip install --upgrade pip; \
     /opt/conda/bin/python3 -m pip --no-cache-dir install -r /tmp/requirements.txt;
 
 # Install Earthworm
-
+RUN wget http://folkworm.ceri.memphis.edu/ew-dist/v7.10.1/earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz; \
+    tar -xvf earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz -C /opt;
+ENV EW_HOME=/opt/earthworm_7.10
 
 # Install PyEarthworm
 RUN git clone https://github.com/Boritech-Solution/PyEarthworm.git; \
