@@ -10,15 +10,21 @@ RUN apt-get update && apt-get upgrade -y; \
     python3-dev python3-pip libgeos-dev pkg-config libhdf5-dev\
     ghostscript gdal-bin graphicsmagick ffmpeg
 
+# Install conda package
 COPY docker/conda_requirements.txt /tmp/
 RUN conda update -y conda; \
     conda install --yes --channel conda-forge --file /tmp/conda_requirements.txt;
 
+# Install python package
 COPY docker/requirements.txt /tmp/
 RUN /opt/conda/bin/python3 -m pip install --upgrade pip; \
     /opt/conda/bin/python3 -m pip --no-cache-dir install -r /tmp/requirements.txt;
 
-RUN git clone https://github.com/cmalek/PyEarthworm.git; \
+# Install Earthworm
+
+
+# Install PyEarthworm
+RUN git clone https://github.com/Boritech-Solution/PyEarthworm.git; \
     cd PyEarthworm; \
     /opt/conda/bin/python3 setup.py install; \
     cd ..; \
