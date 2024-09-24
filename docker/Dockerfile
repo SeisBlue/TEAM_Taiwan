@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install linux package
 RUN apt-get update && apt-get upgrade -y; \
     apt-get install -y \
-    curl git htop sudo vim \
+    curl git htop sudo vim wget\
     python3-dev python3-pip libgeos-dev pkg-config libhdf5-dev\
     ghostscript gdal-bin graphicsmagick ffmpeg
 
@@ -21,7 +21,7 @@ RUN /opt/conda/bin/python3 -m pip install --upgrade pip; \
     /opt/conda/bin/python3 -m pip --no-cache-dir install -r /tmp/requirements.txt;
 
 # Install Earthworm
-RUN curl http://folkworm.ceri.memphis.edu/ew-dist/v7.10.1/earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz; \
+RUN wget http://folkworm.ceri.memphis.edu/ew-dist/v7.10.1/earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz; \
     tar -xvf earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz -C /opt;
 ENV EW_HOME=/opt/earthworm_7.10
 
