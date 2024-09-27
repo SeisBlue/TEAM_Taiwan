@@ -8,6 +8,7 @@ numexpr>=2.8.4
 numpy
 obspy
 pandas
+plotly
 scikit-learn
 scipy
 seaborn
