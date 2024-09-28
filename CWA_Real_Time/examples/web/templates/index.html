@@ -31,6 +31,8 @@
 <script>
     const socket = io();
     const stations = new Map();
+    const sampleRate = 100;
+    const dataWindow = 10 * sampleRate;
 
     function createChart(station) {
         let chartDiv = document.createElement('div');
@@ -39,7 +41,7 @@
         document.getElementById('charts').appendChild(chartDiv);
 
         let data = [{
-            y: Array(5000).fill(0),
+            y: Array(dataWindow).fill(0),
             type: 'scatter',
             mode: 'lines'
         }];
@@ -56,13 +58,18 @@
                 }
             },
 
+            yaxis: {
+                title: 'Value'
+            },
+
             height: 50,
-            margin: {t: 0, b: 20, l: 200, r: 10}
+            margin: {t: 5, b: 20, l: 200, r: 10}
         };
 
         Plotly.newPlot(`chart-${station}`, data, layout, {displayModeBar: false});
-        stations.set(station, Array(5000).fill(0));
+        stations.set(station, Array(dataWindow).fill(0));
     }
+
 
     function updateChart(station, newData) {
         let currentData = stations.get(station);
