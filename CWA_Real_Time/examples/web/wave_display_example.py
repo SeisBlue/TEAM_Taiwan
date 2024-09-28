@@ -12,10 +12,6 @@ socketio = SocketIO(app)
 stations = {}
 
 
-def generate_station_name():
-    return f"Station-{random.randint(1, 999):03d}"
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -29,30 +25,64 @@ def handle_connect():
 
 
 def get_wave():
-    wave_ring = PyEW.EWModule(def_ring=1000, mod_id=2, inst_id=255,
-                              hb_time=30, db=False)
-    wave_ring.add_ring(1000)
-
     while True:
-        if wave_ring.mod_sta() is False:
+        if earthworm.mod_sta() is False:
             continue
         time.sleep(0.001)
 
-        wave = wave_ring.get_wave(0)
+        wave = earthworm.get_wave(0)
         if wave:
             if "Z" not in wave["channel"]:
                 continue
 
-            trace_name = (wave["station"]
-                          + wave["channel"]
-                          + wave["network"]
-                          + wave["location"])
+            trace_name = f'{wave["station"]}.{wave["channel"]}.{wave["network"]}.{wave["location"]}'
+            # Calculate the time interval between samples in milliseconds
+            interval = 1000 / wave['samprate']
 
-            socketio.emit('earthquake_data', {'station': trace_name,
-                                              'data': wave['data'].tolist(),})
+            # Generate the list of timestamps in milliseconds
+
+            socketio.emit(
+                'earthquake_data', {
+                    'station': trace_name,
+                    'endt': int(wave['endt'] * 1000),
+                    'data': wave['data'].tolist()
+                }
+            )
+
+
+def get_pick():
+    while True:
+        pick_msg = earthworm.get_msg(buf_ring=2, msg_type=0)
+        if pick_msg:
+            try:
+                pick_info = pick_msg.split()
+                station = pick_info[0]
+                channel = pick_info[1]
+                network = pick_info[2]
+                location = pick_info[3]
+                lon = pick_info[4]
+                lat = pick_info[5]
+                pa = pick_info[6]
+                pv = pick_info[7]
+                pd = pick_info[8]
+                pick_time = pick_info[10]
+                weight = pick_info[11]
+                repeat = pick_info[13]
+                if repeat == "2":
+                    print(f'{station}.{channel}.{network}.{location} {pick_time} {weight} {repeat}')
+            except IndexError:
+                continue
+        time.sleep(0.001)
 
 
 if __name__ == '__main__':
+    earthworm = PyEW.EWModule(def_ring=1000, mod_id=2, inst_id=255,
+                              hb_time=30, db=False)
+    earthworm.add_ring(1000)
+    earthworm.add_ring(1002)
+    earthworm.add_ring(1005)
+
     threading.Thread(target=get_wave, daemon=True).start()
+    threading.Thread(target=get_pick, daemon=True).start()
     app.run(host='192.168.100.238', port=5000)
     socketio.run(app, debug=True)
