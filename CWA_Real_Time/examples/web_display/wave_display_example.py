@@ -16,6 +16,7 @@ stations = {}
 def index():
     return render_template('index.html')
 
+
 @socketio.on('connect')
 def connect_earthworm():
     socketio.emit('connect_init')
@@ -31,6 +32,8 @@ def get_wave():
         if wave:
             if "Z" not in wave["channel"]:
                 continue
+
+            # GDMS TSMIP new format to old format
             if wave['network'] == 'TW':
                 wave['network'] = 'SM'
                 wave['location'] = '01'
@@ -65,15 +68,20 @@ def get_pick():
                 weight = pick_info[11]
                 repeat = pick_info[13]
 
-                if repeat == "2":
-                    print(f'{station}.{channel}.{network}.{location} '
-                          f'{pick_time} {weight} {repeat}')
-                    socketio.emit('pick_data', {
-                        'station': f'{station}.{channel}.{network}.{location}',
-                        'pick_time': pick_time,
-                        'weight': weight,
-                        'repeat': repeat
-                    })
+
+                print(f'{station}.{channel}.{network}.{location} '
+                      f'{pick_time} {weight} {repeat}')
+                socketio.emit('pick_data', {
+                    'station': f'{station}.{channel}.{network}.{location}',
+                    'longitude': lon,
+                    'latitude': lat,
+                    'pga': pa,
+                    'pgv': pv,
+                    'pd': pd,
+                    'pick_time': pick_time,
+                    'weight': weight,
+                    'repeat': repeat
+                })
 
             except IndexError:
                 continue

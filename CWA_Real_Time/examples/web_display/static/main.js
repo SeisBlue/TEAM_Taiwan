@@ -1,8 +1,8 @@
 const socket = io();
 const stations = new Map();
-const pickStation = [];
+const picks = new Map();
 const sampleRate = 100;
-const dataWindow = 10 * sampleRate;
+const dataWindow = 15 * sampleRate;
 
 function createTrace(station) {
     stations.set(station, Array(dataWindow).fill(0));
@@ -59,8 +59,8 @@ function updateChart(station) {
 }
 
 socket.on('connect_init', function () {
-    pickStation.forEach(station => {
-        createChart(station);
+    picks.forEach((value, key) => {
+        createChart(key);
     });
 });
 
@@ -71,17 +71,29 @@ socket.on('earthquake_data', function (msg) {
     updateTrace(msg.station, msg.data);
     console.log(msg.station);
 
-    if (pickStation.includes(msg.station)) {
+    if (picks.has(msg.station)) {
         updateChart(msg.station);
     }
 
 });
 
 socket.on('pick_data', function (msg) {
-    if (!pickStation.includes(msg.station)) {
-        pickStation.push(msg.station);
-        createChart(msg.station);
+    if (msg.repeat == 2) {
+        if (!picks.has(msg.station)) {
+            picks.set(msg.station, msg.pick_time);
+            createChart(msg.station);
+        }
     }
-    console.log(pickStation);
+
+    if (msg.repeat == 9) {
+        if (picks.has(msg.station)) {
+            picks.delete(msg.station);
+            let chartDiv = document.getElementById(`chart-${msg.station}`);
+            chartDiv.remove();
+        }
+    }
+
+
+    console.log(picks);
 });
 
