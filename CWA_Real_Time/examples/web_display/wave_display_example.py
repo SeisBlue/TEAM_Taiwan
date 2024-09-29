@@ -16,12 +16,9 @@ stations = {}
 def index():
     return render_template('index.html')
 
-
 @socketio.on('connect')
-def handle_connect():
-    global stations
-    stations_list = list(stations.keys())
-    socketio.emit('init_stations', {'stations': stations_list})
+def connect_earthworm():
+    socketio.emit('connect_init')
 
 
 def get_wave():
@@ -34,12 +31,11 @@ def get_wave():
         if wave:
             if "Z" not in wave["channel"]:
                 continue
+            if wave['network'] == 'TW':
+                wave['network'] = 'SM'
+                wave['location'] = '01'
 
             trace_name = f'{wave["station"]}.{wave["channel"]}.{wave["network"]}.{wave["location"]}'
-            # Calculate the time interval between samples in milliseconds
-            interval = 1000 / wave['samprate']
-
-            # Generate the list of timestamps in milliseconds
 
             socketio.emit(
                 'earthquake_data', {
@@ -68,8 +64,17 @@ def get_pick():
                 pick_time = pick_info[10]
                 weight = pick_info[11]
                 repeat = pick_info[13]
+
                 if repeat == "2":
-                    print(f'{station}.{channel}.{network}.{location} {pick_time} {weight} {repeat}')
+                    print(f'{station}.{channel}.{network}.{location} '
+                          f'{pick_time} {weight} {repeat}')
+                    socketio.emit('pick_data', {
+                        'station': f'{station}.{channel}.{network}.{location}',
+                        'pick_time': pick_time,
+                        'weight': weight,
+                        'repeat': repeat
+                    })
+
             except IndexError:
                 continue
         time.sleep(0.001)
