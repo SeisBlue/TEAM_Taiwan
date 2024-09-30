@@ -15,3 +15,14 @@
         width: 100%;
     }
 }
+
+#info-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#time, #picks {
+    margin: 0 10px;
+}

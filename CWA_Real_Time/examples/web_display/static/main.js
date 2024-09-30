@@ -58,6 +58,16 @@ function updateChart(station) {
     Plotly.update(`chart-${station}`, update);
 }
 
+function updateTime(timeStamp) {
+    const timeDiv = document.getElementById('time');
+    timeDiv.textContent = timeStamp;
+}
+
+function updatePick(picks) {
+    const picksDiv = document.getElementById('picks');
+    picksDiv.textContent = 'Picks count: ' + picks.size;
+}
+
 socket.on('connect_init', function () {
     picks.forEach((value, key) => {
         createChart(key);
@@ -69,31 +79,30 @@ socket.on('earthquake_data', function (msg) {
         createTrace(msg.station);
     }
     updateTrace(msg.station, msg.data);
-    console.log(msg.station);
+    console.log(msg.station +" time: "+ new Date(msg.endt).toISOString());
 
     if (picks.has(msg.station)) {
         updateChart(msg.station);
     }
-
+    updateTime(new Date(msg.endt).toISOString());
 });
 
 socket.on('pick_data', function (msg) {
-    if (msg.repeat == 2) {
+    if (msg.update_sec == 2) {
         if (!picks.has(msg.station)) {
             picks.set(msg.station, msg.pick_time);
             createChart(msg.station);
         }
     }
 
-    if (msg.repeat == 9) {
+    if (msg.update_sec == 9) {
         if (picks.has(msg.station)) {
             picks.delete(msg.station);
             let chartDiv = document.getElementById(`chart-${msg.station}`);
             chartDiv.remove();
         }
     }
-
-
+    updatePick(picks);
     console.log(picks);
 });
 

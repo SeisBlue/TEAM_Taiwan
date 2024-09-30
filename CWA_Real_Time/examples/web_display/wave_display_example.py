@@ -61,26 +61,27 @@ def get_pick():
                 location = pick_info[3]
                 lon = pick_info[4]
                 lat = pick_info[5]
-                pa = pick_info[6]
-                pv = pick_info[7]
+                pga = pick_info[6]
+                pgv = pick_info[7]
                 pd = pick_info[8]
+                tc = pick_info[9] # Average period
                 pick_time = pick_info[10]
-                weight = pick_info[11]
-                repeat = pick_info[13]
+                weight = pick_info[11] # 0:best 5:worst
+                instrument = pick_info[12] # 1:Acc 2:Vel
+                update_sec = pick_info[13] # sec after pick
 
 
-                print(f'{station}.{channel}.{network}.{location} '
-                      f'{pick_time} {weight} {repeat}')
+                print(pick_msg)
                 socketio.emit('pick_data', {
                     'station': f'{station}.{channel}.{network}.{location}',
                     'longitude': lon,
                     'latitude': lat,
-                    'pga': pa,
-                    'pgv': pv,
+                    'pga': pga,
+                    'pgv': pgv,
                     'pd': pd,
                     'pick_time': pick_time,
                     'weight': weight,
-                    'repeat': repeat
+                    'update_sec': update_sec
                 })
 
             except IndexError:
