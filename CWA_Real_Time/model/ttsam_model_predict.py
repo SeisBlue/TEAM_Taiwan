@@ -17,10 +17,10 @@ def get_sample(json_path):
 
 
 if __name__ == "__main__":
-    model_path = f"model/ttsam_trained_model_11.pt"
+    model_path = f"ttsam_trained_model_11.pt"
     full_Model = get_full_model(model_path)
 
-    sample = get_sample("tests/data/ttsam_sample.json")
+    sample = get_sample("../tests/data/ttsam_sample.json")
     weight, sigma, mu = full_Model(sample)
 
     print(f"weight: {weight}")

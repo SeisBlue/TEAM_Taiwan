@@ -224,7 +224,7 @@ def trace_pick_plot(
 
 
 def get_peak_value(stream, pick_point=0, thresholds=None):
-    data = [tr.data for tr in stream]
+    data = [tr.stream for tr in stream]
     data = np.array(data)
     data = data[:, pick_point:]
     vector = np.linalg.norm(data, axis=0)

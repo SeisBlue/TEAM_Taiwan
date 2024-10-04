@@ -1,27 +1,24 @@
 const socket = io();
-const stations = new Map();
+const traces = new Map();
 const picks = new Map();
 const sampleRate = 100;
 const dataWindow = 15 * sampleRate;
 
-function createTrace(station) {
-    stations.set(station, Array(dataWindow).fill(0));
+function createTrace(traceid) {
+    traces.set(traceid, Array(dataWindow).fill(0));
 }
 
-function updateTrace(station, newData) {
-    let currentData = stations.get(station);
-    currentData.splice(0, newData.length); // Remove the oldest data
-    currentData.push(...newData); // Add the new data
-    stations.set(station, currentData);
+function updateTrace(traceid, newData) {
+    traces.set(traceid, [newData]);
 }
 
-function createChart(station) {
+function createChart(traceid) {
     let chartDiv = document.createElement('div');
     chartDiv.className = 'chart';
-    chartDiv.id = `chart-${station}`;
+    chartDiv.id = `chart-${traceid}`;
     document.getElementById('charts').appendChild(chartDiv);
 
-    let currentData = stations.get(station);
+    let currentData = traces.get(traceid);
 
     let data = [{
         y: [currentData],
@@ -31,7 +28,7 @@ function createChart(station) {
 
     let layout = {
         title: {
-            text: `${station}`,
+            text: `${traceid}`,
             xanchor: 'left',
             yanchor: 'middle',
             x: 0,   // x = 0 表示最左邊
@@ -46,16 +43,15 @@ function createChart(station) {
         margin: {t: 5, b: 20, l: 200, r: 10}
     };
 
-    Plotly.newPlot(`chart-${station}`, data, layout, {displayModeBar: false});
+    Plotly.newPlot(`chart-${traceid}`, data, layout, {displayModeBar: false});
 }
 
 
-function updateChart(station) {
-    let currentData = stations.get(station);
+function updateChart(traceid, currentData) {
     let update = {
         y: [currentData]
     };
-    Plotly.update(`chart-${station}`, update);
+    Plotly.update(`chart-${traceid}`, update);
 }
 
 function updateTime(timeStamp) {
@@ -74,31 +70,38 @@ socket.on('connect_init', function () {
     });
 });
 
-socket.on('earthquake_data', function (msg) {
-    if (!stations.has(msg.station)) {
-        createTrace(msg.station);
+socket.on('wave_data', function (msg) {
+    if (!traces.has(msg.traceid)) {
+        createTrace(msg.traceid);
     }
-    updateTrace(msg.station, msg.data);
-    console.log(msg.station +" time: "+ new Date(msg.endt).toISOString());
+    updateTrace(msg.traceid, msg.data);
+    console.log(msg.traceid + " time: " + new Date(msg.endt).toISOString());
 
-    if (picks.has(msg.station)) {
-        updateChart(msg.station);
-    }
+    updateChart(msg.traceid);
+
     updateTime(new Date(msg.endt).toISOString());
+});
+
+socket.on('trace_data', function (msg) {
+    if (!document.getElementById(`chart-${msg.traceid}`)) {
+        createChart(msg.traceid);
+    }
+    updateChart(msg.traceid, msg.data);
+    console.log(msg.traceid + " time: " + msg.time);
 });
 
 socket.on('pick_data', function (msg) {
     if (msg.update_sec == 2) {
-        if (!picks.has(msg.station)) {
-            picks.set(msg.station, msg.pick_time);
-            createChart(msg.station);
+        if (!picks.has(msg.traceid)) {
+            picks.set(msg.traceid, msg.pick_time);
+            createChart(msg.traceid);
         }
     }
 
     if (msg.update_sec == 9) {
-        if (picks.has(msg.station)) {
-            picks.delete(msg.station);
-            let chartDiv = document.getElementById(`chart-${msg.station}`);
+        if (picks.has(msg.traceid)) {
+            picks.delete(msg.traceid);
+            let chartDiv = document.getElementById(`chart-${msg.traceid}`);
             chartDiv.remove();
         }
     }
