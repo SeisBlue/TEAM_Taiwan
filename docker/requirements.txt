@@ -1,6 +1,7 @@
 black
 Cartopy
 cython
+flask-socketio
 h5py
 matplotlib
 mlflow

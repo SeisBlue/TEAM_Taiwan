@@ -1,16 +1,8 @@
 const socket = io();
 const traces = new Map();
+const times = new Map();
 const picks = new Map();
-const sampleRate = 100;
-const dataWindow = 15 * sampleRate;
 
-function createTrace(traceid) {
-    traces.set(traceid, Array(dataWindow).fill(0));
-}
-
-function updateTrace(traceid, newData) {
-    traces.set(traceid, [newData]);
-}
 
 function createChart(traceid) {
     let chartDiv = document.createElement('div');
@@ -18,13 +10,28 @@ function createChart(traceid) {
     chartDiv.id = `chart-${traceid}`;
     document.getElementById('charts').appendChild(chartDiv);
 
-    let currentData = traces.get(traceid);
-
-    let data = [{
-        y: [currentData],
+    let ch_z = {
+        x: [],
+        y: [],
         type: 'scatter',
-        mode: 'lines'
-    }];
+        mode: 'lines',
+        name: 'Z'
+    };
+    let ch_n = {
+        x: [],
+        y: [],
+        type: 'scatter',
+        mode: 'lines',
+        name: 'N'
+    };
+    let ch_e = {
+        x: [],
+        y: [],
+        type: 'scatter',
+        mode: 'lines',
+        name: 'E'
+    };
+    let data = [ch_z, ch_n, ch_e];
 
     let layout = {
         title: {
@@ -38,7 +45,10 @@ function createChart(traceid) {
                 size: 12  // 設定標題字體大小為 12px
             }
         },
-
+        xaxis: {
+            type: 'date',  // 設定 x 軸為時間
+            tickformat: '%H:%M:%S',  // 設定時間格式
+        },
         height: 50,
         margin: {t: 5, b: 20, l: 200, r: 10}
     };
@@ -47,21 +57,15 @@ function createChart(traceid) {
 }
 
 
-function updateChart(traceid, currentData) {
-    let update = {
-        y: [currentData]
-    };
+function updateChart(traceid, currentTime, currentData) {
+let update = {
+    x: [currentTime, currentTime, currentTime],
+    y: [currentData.z, currentData.n, currentData.e]
+};
+    console.log(update);
+
+
     Plotly.update(`chart-${traceid}`, update);
-}
-
-function updateTime(timeStamp) {
-    const timeDiv = document.getElementById('time');
-    timeDiv.textContent = timeStamp;
-}
-
-function updatePick(picks) {
-    const picksDiv = document.getElementById('picks');
-    picksDiv.textContent = 'Picks count: ' + picks.size;
 }
 
 socket.on('connect_init', function () {
@@ -70,42 +74,35 @@ socket.on('connect_init', function () {
     });
 });
 
-socket.on('wave_data', function (msg) {
-    if (!traces.has(msg.traceid)) {
-        createTrace(msg.traceid);
-    }
-    updateTrace(msg.traceid, msg.data);
-    console.log(msg.traceid + " time: " + new Date(msg.endt).toISOString());
-
-    updateChart(msg.traceid);
-
-    updateTime(new Date(msg.endt).toISOString());
-});
-
 socket.on('trace_data', function (msg) {
-    if (!document.getElementById(`chart-${msg.traceid}`)) {
-        createChart(msg.traceid);
+    traces.set(msg.traceid, msg.data);
+
+    let currentTime = msg.time.map(time => new Date(time * 1000).toISOString());
+    times.set(msg.traceid, currentTime);
+
+    if (document.getElementById(`chart-${msg.traceid}`)) {
+        updateChart(msg.traceid, currentTime, msg.data);
     }
-    updateChart(msg.traceid, msg.data);
-    console.log(msg.traceid + " time: " + msg.time);
+
+    console.log(msg.traceid + " time: " + new Date(msg.time[msg.time.length - 1] * 1000).toISOString());
 });
 
-socket.on('pick_data', function (msg) {
-    if (msg.update_sec == 2) {
-        if (!picks.has(msg.traceid)) {
-            picks.set(msg.traceid, msg.pick_time);
-            createChart(msg.traceid);
-        }
+socket.on('trigger_data', function (msg) {
+    // 清空所有圖表
+    chartdiv = document.getElementById('charts');
+    while (chartdiv.firstChild) {
+        chartdiv.removeChild(chartdiv.firstChild);
     }
 
-    if (msg.update_sec == 9) {
-        if (picks.has(msg.traceid)) {
-            picks.delete(msg.traceid);
-            let chartDiv = document.getElementById(`chart-${msg.traceid}`);
-            chartDiv.remove();
-        }
+    // 畫出所有資料
+    for (const [key, value] of Object.entries(msg)) {
+        let traceid = key;
+        let trace = value.trace;
+        let data = trace.data
+        let time = trace.time.map(time => new Date(time * 1000).toISOString());
+
+
+        createChart(traceid);
+        updateChart(traceid, time, data);
     }
-    updatePick(picks);
-    console.log(picks);
 });
-
