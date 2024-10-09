@@ -22,9 +22,11 @@ RUN /opt/conda/bin/python3 -m pip install --upgrade pip; \
 
 # Get Earthworm
 RUN wget http://folkworm.ceri.memphis.edu/ew-dist/v7.10.1/earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz; \
-    tar -xvf earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz -C /opt;
+    mkdir /opt/Earthworm; \
+    tar -xvf earthworm_7.10.1-ubuntu18.04-64bit-bin.tar.gz -C /opt/Earthworm;
 
 # Install PyEarthworm
-ENV EW_HOME=/opt/earthworm_7.10
+ENV EW_HOME=/opt/Earthworm/earthworm_7.10
+ENV EW_PARAMS=/opt/Earthworm/run/params
 ENV CFLAGS="-fno-stack-protector -fPIC -Dlinux -D_LINUX -D_USE_SCHED -D_USE_PTHREADS -D_USE_TERMIOS -I${EW_HOME}/include"
 RUN /opt/conda/bin/python3 -m pip install git+https://github.com/Boritech-Solutions/PyEarthworm
