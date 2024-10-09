@@ -12,8 +12,9 @@ class Ring2Buff:
         self.myThread = Thread(target=self.run)
 
         # Start an EW Module with parent ring 1000, mod_id 2, inst_id 255, heartbeat 30s, debug = False
-        self.ring2buff = PyEW.EWModule(def_ring=1000, mod_id=2, inst_id=255,
-                                       hb_time=30, db=False)
+        self.ring2buff = PyEW.EWModule(
+            def_ring=1000, mod_id=2, inst_id=255, hb_time=30, db=False
+        )
 
         # Add our Input ring as Ring 0
         self.ring2buff.add_ring(1000)
@@ -37,10 +38,15 @@ class Ring2Buff:
             return
 
         # Lets try to buffer with python dictionaries
-        name = (wave["station"] + '.'
-                + wave["channel"] + '.'
-                + wave["network"] + '.'
-                + wave["location"])
+        name = (
+            wave["station"]
+            + "."
+            + wave["channel"]
+            + "."
+            + wave["network"]
+            + "."
+            + wave["location"]
+        )
 
         if name in self.wave_buffer:
 
@@ -48,19 +54,18 @@ class Ring2Buff:
             max_samp = wave["samprate"] * 60 * self.minutes
 
             # Prep time array
-            time_array = np.zeros(wave['data'].size)
-            time_skip = 1 / wave['samprate']
-            for i in range(0, wave['data'].size):
-                time_array[i] = (wave['startt'] + (time_skip * i)) * 1000
-            time_array = np.array(time_array, dtype='datetime64[ms]')
+            time_array = np.zeros(wave["data"].size)
+            time_skip = 1 / wave["samprate"]
+            for i in range(0, wave["data"].size):
+                time_array[i] = (wave["startt"] + (time_skip * i)) * 1000
+            time_array = np.array(time_array, dtype="datetime64[ms]")
 
             # Append data to buffer
-            self.wave_buffer[name] = np.append(self.wave_buffer[name],
-                                               wave["data"])
-            self.time_buffer[name] = np.append(self.time_buffer[name],
-                                               time_array)
+            self.wave_buffer[name] = np.append(self.wave_buffer[name], wave["data"])
+            self.time_buffer[name] = np.append(self.time_buffer[name], time_array)
             self.time_buffer[name] = self.time_buffer[name][
-                                     0:self.wave_buffer[name].size]
+                0 : self.wave_buffer[name].size
+            ]
 
             # Debug data
             if self.debug:
@@ -90,17 +95,17 @@ class Ring2Buff:
         else:
 
             # Prep time array
-            time_array = np.zeros(wave['data'].size)
-            time_skip = 1 / wave['samprate']
-            for i in range(0, wave['data'].size):
-                time_array[i] = (wave['startt'] + (time_skip * i)) * 1000
+            time_array = np.zeros(wave["data"].size)
+            time_skip = 1 / wave["samprate"]
+            for i in range(0, wave["data"].size):
+                time_array[i] = (wave["startt"] + (time_skip * i)) * 1000
 
             # First instance of data in buffer, create buffer:
             self.wave_buffer[name] = wave["data"]
-            self.time_buffer[name] = np.array(time_array,
-                                              dtype='datetime64[ms]')
+            self.time_buffer[name] = np.array(time_array, dtype="datetime64[ms]")
             self.time_buffer[name] = self.time_buffer[name][
-                                     0:self.wave_buffer[name].size]
+                0 : self.wave_buffer[name].size
+            ]
 
             # Debug data
             if self.debug:

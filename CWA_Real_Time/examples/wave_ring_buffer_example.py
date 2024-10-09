@@ -3,6 +3,7 @@ import time
 import random
 from collections import deque
 
+
 # 模擬接收的波形數據（例如：每秒產生一個隨機數字）
 def data_receiver(buffer, buffer_lock, stop_event):
     while not stop_event.is_set():
@@ -11,6 +12,7 @@ def data_receiver(buffer, buffer_lock, stop_event):
             buffer.append((time.time(), data))  # 儲存時間戳和數據
             print(f"接收波形數據: {data:.4f}")
         time.sleep(1)  # 模擬1秒接收一次
+
 
 # 模擬 P 波檢測（隨機在10到30秒內觸發一次P波）
 def p_wave_detector(trigger_event, stop_event):
@@ -24,6 +26,7 @@ def p_wave_detector(trigger_event, stop_event):
         # 等待處理完成後重置事件
         trigger_event.clear()
 
+
 # 觸發後的處理函數
 def trigger_handler(buffer, buffer_lock, trigger_event, stop_event):
     while not stop_event.is_set():
@@ -33,7 +36,9 @@ def trigger_handler(buffer, buffer_lock, trigger_event, stop_event):
             with buffer_lock:
                 current_time = time.time()
                 # 提取 P 波前的 5 秒數據
-                pre_trigger_data = [data for (ts, data) in buffer if ts >= current_time - 5]
+                pre_trigger_data = [
+                    data for (ts, data) in buffer if ts >= current_time - 5
+                ]
             print("P 波被偵測到，處理前 5 秒波形數據:")
             print(pre_trigger_data)
 
@@ -57,7 +62,7 @@ def trigger_handler(buffer, buffer_lock, trigger_event, stop_event):
             periodic_stop_event = threading.Event()
             periodic_thread = threading.Thread(
                 target=periodic_output,
-                args=(buffer, buffer_lock, periodic_trigger, periodic_stop_event)
+                args=(buffer, buffer_lock, periodic_trigger, periodic_stop_event),
             )
             periodic_thread.start()
 
@@ -71,6 +76,7 @@ def trigger_handler(buffer, buffer_lock, trigger_event, stop_event):
             timer_thread.start()
 
         time.sleep(0.1)
+
 
 # 每隔2秒輸出一次數據的處理函數
 def periodic_output(buffer, buffer_lock, periodic_trigger, periodic_stop_event):
@@ -86,6 +92,7 @@ def periodic_output(buffer, buffer_lock, periodic_trigger, periodic_stop_event):
             periodic_trigger.clear()
     print("周期性輸出線程已終止。")
 
+
 def main():
     # 緩衝區初始化（最多存儲10個1秒的數據，至少存儲5秒前的數據）
     buffer = deque(maxlen=100)  # 增大緩衝區以確保有足夠的前置數據
@@ -96,9 +103,15 @@ def main():
     stop_event = threading.Event()
 
     # 創建線程
-    receiver_thread = threading.Thread(target=data_receiver, args=(buffer, buffer_lock, stop_event))
-    detector_thread = threading.Thread(target=p_wave_detector, args=(trigger_event, stop_event))
-    handler_thread = threading.Thread(target=trigger_handler, args=(buffer, buffer_lock, trigger_event, stop_event))
+    receiver_thread = threading.Thread(
+        target=data_receiver, args=(buffer, buffer_lock, stop_event)
+    )
+    detector_thread = threading.Thread(
+        target=p_wave_detector, args=(trigger_event, stop_event)
+    )
+    handler_thread = threading.Thread(
+        target=trigger_handler, args=(buffer, buffer_lock, trigger_event, stop_event)
+    )
 
     # 啟動線程
     receiver_thread.start()
@@ -118,6 +131,7 @@ def main():
     detector_thread.join()
     handler_thread.join()
     print("程序已結束。")
+
 
 if __name__ == "__main__":
     main()
