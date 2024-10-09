@@ -7,7 +7,10 @@ import time
 import threading
 import PyEW
 import argparse
+import json
 
+from obspy import UTCDateTime
+from pygmt.src import timestamp
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -17,7 +20,7 @@ time_buffer = {}
 picks = {}
 trigger_queue = queue.Queue()
 
-buffer_time = 15  # 設定緩衝區保留時間
+buffer_time = 30  # 設定緩衝區保留時間
 sample_rate = 100  # 設定取樣率
 
 
@@ -55,7 +58,6 @@ def earthworm_wave_listener():
                                     sample_rate * (buffer_time - 1)),
                         np.linspace(wave['startt'], wave['endt'], sample_rate))
 
-
                 wave_buffer[wave_id] = np.roll(wave_buffer[wave_id],
                                                -wave['data'].size)
                 wave_buffer[wave_id][-wave['data'].size:] = wave['data']
@@ -77,7 +79,7 @@ def trigger_emitter(debug=False):
     while True:
         try:
             if debug:
-                print('emit wave', picks)
+                print('emit trigger', picks)
 
             trigger_msg = {}
             # pick 只有 Z 軸
@@ -87,11 +89,11 @@ def trigger_emitter(debug=False):
                 location = pick['location']
                 channel = pick['channel']
 
-
                 data = {}
                 # 找到 wave_buffer 內的三軸資料
                 for i, component in enumerate(['Z', 'N', 'E']):
                     wave_id = f'{network}.{station}.{location}.{channel[0:2]}{component}'
+                    print(wave_id)
                     data[component.lower()] = wave_buffer[wave_id].tolist()
 
                 trace_dict = {'traceid': pick_id,
@@ -110,16 +112,45 @@ def trigger_emitter(debug=False):
             print(e)
         time.sleep(1)
 
-def earthworm_convert_to_ttsam(debug=True):
+
+def earthworm_convert_to_ttsam(debug=False):
     while True:
         trigger_msg = trigger_queue.get()
         if debug:
             print('get trigger:', trigger_msg.keys())
         if trigger_msg:
-            pass
+            waveform = []
+            sta = []
+            target = []
+            station_name = []
+            for i, (pick_id, data) in enumerate(trigger_msg.items()):
+                if i == 0:
+                    start_time = data['trace']['time']
 
+                trace = []
+                for j, component in enumerate(['Z', 'N', 'E']):
+                    trace.append(data['trace']['data'][component.lower()])
 
+                waveform.append(trace)
+                sta.append([float(data['pick']['lat']), float(data['pick']['lon']), 100, 760])
+                target.append(
+                    [float(data['pick']['lat']), float(data['pick']['lon']), 100, 760])
+                station_name.append(data['pick']['station'])
 
+            print(np.array(waveform).shape)
+
+            output = {
+                "waveform": waveform,
+                "sta": sta,
+                "target": target,
+                "station_name": station_name
+            }
+
+            start_timestamp = UTCDateTime(start_time[0]).isoformat()
+            with open(f'tests/data/ttsam_convert_{start_timestamp}.json', 'w') as json_file:
+                json.dump(output, json_file)
+
+        time.sleep(1)
 
 
 def join_id_from_dict(data, order='NSLC'):
