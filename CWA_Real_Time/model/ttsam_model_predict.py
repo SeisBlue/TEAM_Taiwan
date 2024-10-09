@@ -11,7 +11,7 @@ def get_sample(json_path):
     with open(json_path, "r") as json_file:
         data = json.load(json_file)
 
-    wave = np.array(data['waveform'])
+    wave = np.array(data["waveform"])
     wave_transposed = wave.transpose(0, 2, 1)
     data_limit = min(len(data["waveform"]), 25)
 
@@ -27,8 +27,11 @@ def get_sample(json_path):
     input_waveform = torch.tensor(waveform).to(torch.double).unsqueeze(0)
     input_station = torch.tensor(station).to(torch.double).unsqueeze(0)
     target_station = torch.tensor(target).to(torch.double).unsqueeze(0)
-    sample = {"waveform": input_waveform, "sta": input_station,
-              "target": target_station}
+    sample = {
+        "waveform": input_waveform,
+        "sta": input_station,
+        "target": target_station,
+    }
     return sample
 
 
