@@ -1,9 +1,8 @@
 import json
-import os
+import time
 
 import numpy as np
 import torch
-
 from ttsam_model import get_full_model
 
 
@@ -36,11 +35,17 @@ def get_sample(json_path):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     model_path = f"model/ttsam_trained_model_11.pt"
     full_Model = get_full_model(model_path)
 
     sample = get_sample("tests/data/ttsam_convert_2024-04-02T23:58:02.json")
     weight, sigma, mu = full_Model(sample)
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+
+    print(f"執行時間: {execution_time} 秒")
 
     print(f"weight: {weight}")
     print(f"sigma: {sigma}")

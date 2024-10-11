@@ -1,7 +1,8 @@
-import PyEW
 import time
 from threading import Thread
+
 import numpy as np
+import PyEW
 
 
 class Ring2Buff:
