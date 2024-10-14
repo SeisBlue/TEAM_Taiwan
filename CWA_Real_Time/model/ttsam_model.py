@@ -536,13 +536,13 @@ class FullModel(nn.Module):
             CNN_output, (-1, self.max_station, self.emb_dim)
         )
         emb_output = self.model_Position(
-            torch.DoubleTensor(data["sta"].reshape(-1, 1, data["sta"].shape[2]))
+            torch.DoubleTensor(data["station"].reshape(-1, 1, data["station"].shape[2]))
             .float()
             .to(device)
         )
         emb_output = emb_output.reshape(-1, self.max_station, self.emb_dim)
         # data[1] 做一個padding mask [batchsize, station number (25)], value: True, False (True: should mask)
-        station_pad_mask = data["sta"] == 0
+        station_pad_mask = data["station"] == 0
         station_pad_mask = torch.all(station_pad_mask, 2)
 
         pga_pos_emb_output = self.model_Position(

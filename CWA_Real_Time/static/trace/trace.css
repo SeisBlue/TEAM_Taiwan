@@ -1,0 +1,28 @@
+#charts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.chart {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 0px;
+}
+
+@media (max-width: 1200px) {
+    .chart {
+        width: 100%;
+    }
+}
+
+#info-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#time, #picks {
+    margin: 0 10px;
+}

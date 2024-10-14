@@ -64,7 +64,6 @@ let update = {
 };
     console.log(update);
 
-
     Plotly.update(`chart-${traceid}`, update);
 }
 
@@ -74,24 +73,12 @@ socket.on('connect_init', function () {
     });
 });
 
-socket.on('trace_data', function (msg) {
-    traces.set(msg.traceid, msg.data);
-
-    let currentTime = msg.time.map(time => new Date(time * 1000).toISOString());
-    times.set(msg.traceid, currentTime);
-
-    if (document.getElementById(`chart-${msg.traceid}`)) {
-        updateChart(msg.traceid, currentTime, msg.data);
-    }
-
-    console.log(msg.traceid + " time: " + new Date(msg.time[msg.time.length - 1] * 1000).toISOString());
-});
-
-socket.on('trigger_data', function (msg) {
+socket.on('event_data', function (msg) {
     // 清空所有圖表
-    chartdiv = document.getElementById('charts');
-    while (chartdiv.firstChild) {
-        chartdiv.removeChild(chartdiv.firstChild);
+    let chartsdiv = document.getElementById('charts');
+
+    while (chartsdiv.firstChild) {
+        chartsdiv.removeChild(chartsdiv.lastChild);
     }
 
     // 畫出所有資料

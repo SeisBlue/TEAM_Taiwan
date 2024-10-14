@@ -28,7 +28,7 @@ def get_sample(json_path):
     target_station = torch.tensor(target).to(torch.double).unsqueeze(0)
     sample = {
         "waveform": input_waveform,
-        "sta": input_station,
+        "station": input_station,
         "target": target_station,
     }
     return sample

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trace View</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='trace/trace.css') }}">
+</head>
+<body>
+<div id="navbar">
+    <a href="{{ url_for('trace_page') }}">Trace</a>
+    <a href="{{ url_for('event_page') }}">Event</a>
+</div>
+<div id="charts"></div>
+<script src="{{ url_for('static', filename='trace/trace.js') }}"></script>
+</body>
+</html>

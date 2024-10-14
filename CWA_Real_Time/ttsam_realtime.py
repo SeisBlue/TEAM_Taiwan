@@ -1,5 +1,7 @@
 import argparse
+import ctypes
 import multiprocessing
+import threading
 import time
 
 import numpy as np
@@ -17,11 +19,13 @@ socketio = SocketIO(app)
 manager = multiprocessing.Manager()
 
 wave_buffer = manager.dict()
+wave_queue = manager.Queue()
+
 time_buffer = manager.dict()
 pick_buffer = manager.dict()
-trigger_buffer = manager.dict()
 
-lock = multiprocessing.Lock()
+event_queue = manager.Queue()
+
 
 buffer_time = 30  # 設定緩衝區保留時間
 sample_rate = 100  # 設定取樣率
@@ -32,9 +36,55 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/trace")
+def trace_page():
+    return render_template("trace.html")
+
+
+@app.route("/event")
+def event_page():
+    return render_template("event.html")
+
+
 @socketio.on("connect")
 def connect_earthworm():
     socketio.emit("connect_init")
+
+
+def web_server():
+    threading.Thread(target=wave_emitter).start()
+    threading.Thread(target=event_emitter).start()
+
+    if args.web or args.host or args.port:
+        # 開啟 web server
+        app.run(host=args.host, port=args.port, use_reloader=False)
+        socketio.run(app, debug=True)
+
+
+def wave_emitter():
+    while True:
+        wave = wave_queue.get()
+        wave_id = join_id_from_dict(wave, order="NSLC")
+        if "Z" not in wave_id:
+            continue
+        wave["waveid"] = wave_id
+
+        wave_packet = {
+            "waveid": wave_id,
+            "data": wave["data"].tolist(),
+        }
+        socketio.emit("wave_packet", wave_packet)
+
+
+def event_emitter():
+    while True:
+        event_data = event_queue.get()
+        if not event_data:
+            continue
+
+        # 將資料傳送給前端
+        socketio.emit("event_data", event_data)
+        time.sleep(0.5)
 
 
 def join_id_from_dict(data, order="NSLC"):
@@ -64,33 +114,38 @@ def earthworm_wave_listener():
             """
             try:
                 wave = convert_to_tsmip_legacy_naming(wave)
+
                 wave_id = join_id_from_dict(wave, order="NSLC")
+
+                # 將 wave_id 加入 queue 給 trace_emitter 發送至前端
+                if "Z" in wave_id:
+                    wave_queue.put(wave)
 
                 # add new trace to buffer
                 if wave_id not in wave_buffer.keys():
                     wave_buffer[wave_id] = np.zeros(sample_rate * buffer_time)
                     time_buffer[wave_id] = np.append(
                         np.linspace(
-                            wave["startt"] - 14,
+                            wave["startt"] - (buffer_time - 1),
                             wave["startt"],
                             sample_rate * (buffer_time - 1),
                         ),
-                        np.linspace(wave["startt"], wave["endt"], sample_rate),
+                        np.linspace(wave["startt"], wave["endt"], wave["data"].size),
                     )
 
-                wave_buffer[wave_id] = np.roll(wave_buffer[wave_id],
-                                               -wave["data"].size)
-                wave_buffer[wave_id][-wave["data"].size:] = wave["data"]
+                wave_buffer[wave_id] = np.append(wave_buffer[wave_id], wave["data"])
 
-                time_buffer[wave_id] = np.roll(time_buffer[wave_id],
-                                               -wave["data"].size)
-                time_buffer[wave_id][-wave["data"].size:] = np.linspace(
-                    wave["startt"], wave["endt"], wave["data"].size
+                wave_buffer[wave_id] = wave_buffer[wave_id][wave["data"].size :]
+
+                time_buffer[wave_id] = np.append(
+                    time_buffer[wave_id],
+                    np.linspace(wave["startt"], wave["endt"], wave["data"].size),
                 )
+                time_buffer[wave_id] = time_buffer[wave_id][wave["data"].size :]
 
             except Exception as e:
                 print("earthworm_wave_listener error", e)
-        time.sleep(0.0001)
+        time.sleep(0.000001)
 
 
 def earthworm_pick_listener(debug=False):
@@ -143,7 +198,7 @@ def parse_pick_msg(pick_msg):
             "update_sec": pick_msg_column[13],  # sec after pick
         }
 
-        pick["traceid"] = join_id_from_dict(pick, order="NSLC")
+        pick["pickid"] = join_id_from_dict(pick, order="NSLC")
 
         return pick
 
@@ -151,7 +206,8 @@ def parse_pick_msg(pick_msg):
         print("pick_msg parsing error:", pick_msg)
 
 
-def trigger_process(debug=False):
+def get_event(pick_buffer, debug=False):
+    event_data = {}
     # pick 只有 Z 軸
     for pick_id, pick in pick_buffer.items():
         network = pick["network"]
@@ -171,66 +227,75 @@ def trigger_process(debug=False):
             "data": data,
         }
 
-        trigger_buffer[pick_id] = {"pick": pick, "trace": trace_dict}
+        event_data[pick_id] = {"pick": pick, "trace": trace_dict}
 
-    return trigger_buffer
+    event_queue.put(event_data)
+
+    return event_data
 
 
-def converter(trigger_msg, debug=False):
-    if debug:
-        print("get trigger:", trigger_msg.keys())
+def converter(event_msg, debug=False):
+    try:
+        if debug:
+            print("get trigger:", event_msg.keys())
 
-    waveform = []
-    sta = []
-    target = []
-    station_name = []
-    for i, (pick_id, data) in enumerate(trigger_msg.items()):
-        trace = []
-        for j, component in enumerate(["Z", "N", "E"]):
-            trace.append(data["trace"]["data"][component.lower()])
+        waveform = []
+        station = []
+        target = []
+        station_name = []
+        for i, (pick_id, data) in enumerate(event_msg.items()):
+            trace = []
+            for j, component in enumerate(["Z", "N", "E"]):
+                trace.append(data["trace"]["data"][component.lower()])
 
-        waveform.append(trace)
-        sta.append(
-            [float(data["pick"]["lat"]), float(data["pick"]["lon"]), 100, 760])
-        target.append(
-            [float(data["pick"]["lat"]), float(data["pick"]["lon"]), 100, 760]
-        )
+            waveform.append(trace)
+            station.append(
+                [float(data["pick"]["lat"]), float(data["pick"]["lon"]), 100, 760]
+            )
+            target.append(
+                [float(data["pick"]["lat"]), float(data["pick"]["lon"]), 100, 760]
+            )
 
-        station_name.append(data["pick"]["station"])
+            station_name.append(data["pick"]["station"])
 
-    output = {
-        "waveform": waveform,
-        "sta": sta,
-        "target": target,
-        "station_name": station_name,
-    }
-    return output
+        output = {
+            "waveform": waveform,
+            "station": station,
+            "target": target,
+            "station_name": station_name,
+        }
+        return output
+    except Exception as e:
+        print("converter error", e)
 
 
 def reorder_array(data):
-    wave = np.array(data["waveform"])
-    wave_transposed = wave.transpose(0, 2, 1)
-    data_limit = min(len(data["waveform"]), 25)
+    try:
+        wave = np.array(data["waveform"])
+        wave_transposed = wave.transpose(0, 2, 1)
+        data_limit = min(len(data["waveform"]), 25)
 
-    waveform = np.zeros((25, 3000, 3))
-    station = np.zeros((25, 4))
-    target = np.zeros((25, 4))
+        waveform = np.zeros((25, 3000, 3))
+        station = np.zeros((25, 4))
+        target = np.zeros((25, 4))
 
-    # 取前 25 筆資料，不足的話補 0
-    waveform[:data_limit] = wave_transposed[:data_limit]
-    station[:data_limit] = data["sta"][:data_limit]
-    target[:data_limit] = data["target"][:data_limit]
+        # 取前 25 筆資料，不足的話補 0
+        waveform[:data_limit] = wave_transposed[:data_limit]
+        station[:data_limit] = data["station"][:data_limit]
+        target[:data_limit] = data["target"][:data_limit]
 
-    input_waveform = torch.tensor(waveform).to(torch.double).unsqueeze(0)
-    input_station = torch.tensor(station).to(torch.double).unsqueeze(0)
-    target_station = torch.tensor(target).to(torch.double).unsqueeze(0)
-    sample = {
-        "waveform": input_waveform,
-        "sta": input_station,
-        "target": target_station,
-        "station_name": data["station_name"],
-    }
-    return sample
+        input_waveform = torch.tensor(waveform).to(torch.double).unsqueeze(0)
+        input_station = torch.tensor(station).to(torch.double).unsqueeze(0)
+        target_station = torch.tensor(target).to(torch.double).unsqueeze(0)
+        sample = {
+            "waveform": input_waveform,
+            "station": input_station,
+            "target": target_station,
+            "station_name": data["station_name"],
+        }
+        return sample
+    except Exception as e:
+        print("reorder_array error", e)
 
 
 def ttsam_model_predict(data, debug=False):
@@ -246,14 +311,6 @@ def ttsam_model_predict(data, debug=False):
     return weight, sigma, mu
 
 
-def trigger_emitter():
-    while True:
-        if trigger_buffer:
-            # 將資料傳送給前端
-            socketio.emit("trigger_data", trigger_buffer)
-        time.sleep(0.5)
-
-
 def inference_trigger(debug=False):
     """
     進行模型預測
@@ -261,16 +318,16 @@ def inference_trigger(debug=False):
     while True:
         if pick_buffer:
             try:
-                trigger_message = trigger_process()
+                event_data = get_event(pick_buffer)
 
-                output = converter(trigger_message)
+                output = converter(event_data)
 
                 data = reorder_array(output)
 
                 weight, sigma, mu = ttsam_model_predict(data)
 
             except Exception as e:
-                print("trigger_emitter error", e)
+                print("inference_trigger error", e)
 
         time.sleep(0.5)
 
@@ -294,7 +351,7 @@ if __name__ == "__main__":
         earthworm_wave_listener,
         earthworm_pick_listener,
         inference_trigger,
-        trigger_emitter
+        web_server,
     ]
 
     # 為每個函數創建一個持續運行的進程
@@ -302,10 +359,6 @@ if __name__ == "__main__":
         p = multiprocessing.Process(target=func)
         processes.append(p)
         p.start()
-
-    if args.web or args.host or args.port:
-        app.run(host=args.host, port=args.port, use_reloader=False)
-        socketio.run(app, debug=True)
 
     # 主進程要等待這些進程的完成（但由於是服務，不會實際完成）
     for p in processes:

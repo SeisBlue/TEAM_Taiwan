@@ -3,17 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>動態多站即時地震波形圖</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>首頁</title>
 </head>
 <body>
-<div id="info-container">
-    <div id="time" style="text-align: center; font-size: 24px; margin-bottom: 0px;"></div>
-    <div id="picks" style="text-align: center; font-size: 24px; margin-bottom: 0px;"></div>
+<div id="navbar">
+    <a href="{{ url_for('trace_page') }}">Trace</a>
+    <a href="{{ url_for('event_page') }}">Event</a>
 </div>
-<div id="charts"></div>
-<script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
