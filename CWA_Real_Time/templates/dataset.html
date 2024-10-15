@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trace View</title>
+    <title>Dataset View</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 
@@ -28,14 +28,14 @@
     <a href="{{ url_for('event_page') }}">Event</a>
     <a href="{{ url_for('map_page') }}">Map</a>
 </div>
+
 <div id="charts"></div>
 </body>
-
 <script type="text/javascript">
     const socket = io();
     const traces = new Map();
+    const times = new Map();
     const picks = new Map();
-    const traceLength = 1500;
 
 
     function createChart(traceid) {
@@ -44,12 +44,25 @@
         chartDiv.id = `chart-${traceid}`;
         document.getElementById('charts').appendChild(chartDiv);
 
-
-        let data = [{
-            y: Array(3000).fill(0),
+        let ch_z = {
+            y: [],
             type: 'scatter',
             mode: 'lines',
-        }];
+            name: 'Z'
+        };
+        let ch_n = {
+            y: [],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'N'
+        };
+        let ch_e = {
+            y: [],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'E'
+        };
+        let data = [ch_z, ch_n, ch_e];
 
         let layout = {
             title: {
@@ -63,44 +76,49 @@
                     size: 12  // 設定標題字體大小為 12px
                 }
             },
-
             height: 50,
             margin: {t: 5, b: 20, l: 200, r: 10}
         };
 
         Plotly.newPlot(`chart-${traceid}`, data, layout, {displayModeBar: false});
-        traces.set(traceid, Array(traceLength).fill(0));
     }
 
 
-    function updateChart(traceid, newData) {
-        let currentData = traces.get(traceid);
-        currentData = [...currentData.slice(newData.length), ...newData];
-        traces.set(traceid, currentData);
-
-
+    function updateChart(traceid, currentData) {
         let update = {
-            y: [currentData]
+            y: [currentData[0], currentData[1], currentData[2]]
         };
+        console.log(update);
 
         Plotly.update(`chart-${traceid}`, update);
     }
 
     socket.on('connect_init', function () {
-        traces.forEach((value, key) => {
+        picks.forEach((value, key) => {
             createChart(key);
         });
     });
 
-    socket.on('wave_packet', function (msg) {
+    socket.on('dataset_data', function (msg) {
+        // 清空所有圖表
+        let chartsdiv = document.getElementById('charts');
 
-        if (!traces.has(msg.waveid)) {
-            createChart(msg.waveid);
+        while (chartsdiv.firstChild) {
+            chartsdiv.removeChild(chartsdiv.lastChild);
         }
 
-        let data = msg.data
-        updateChart(msg.waveid, data);
+        // 畫出所有資料
+        for (let i = 0; i < msg.station_name.length; i++) {
 
+            let traceid = msg.station_name[i];
+            let data = msg.waveform[i];
+
+            createChart(traceid);
+            updateChart(traceid, data);
+
+
+        }
     });
+
 </script>
 </html>

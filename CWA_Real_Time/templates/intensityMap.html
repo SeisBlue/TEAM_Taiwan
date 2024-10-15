@@ -1,0 +1,54 @@
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <script src="https://unpkg.com/deck.gl@^9.0.0-beta.2/dist.min.js"></script>
+    <script src="https://unpkg.com/deck.gl-leaflet@1.1.1/dist/deck.gl-leaflet.min.js"></script>
+
+    <style>
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+
+</head>
+
+<body>
+<div id="map"></div>
+</body>
+
+<script type="text/javascript">
+    const map = L.map(document.getElementById('map'), {
+        center: [23.5, 121],
+        zoom: 8,
+    });
+
+    const Esri_OceanBasemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+        maxZoom: 13
+    });
+    Esri_OceanBasemap.addTo(map);
+
+
+    const deckLayer = new DeckGlLeaflet.LeafletLayer({
+        views: [
+            new deck.MapView({
+                repeat: true
+            })
+        ],
+        layers: [],
+    });
+    map.addLayer(deckLayer);
+
+    const featureGroup = L.featureGroup();
+    featureGroup.addLayer(L.marker([51.4709959, -0.4531566]));
+    map.addLayer(featureGroup);
+
+</script>
+</html>

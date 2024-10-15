@@ -28,8 +28,8 @@ time_buffer = manager.dict()
 pick_buffer = manager.dict()
 
 event_queue = manager.Queue()
-
-
+dataset_queue = manager.Queue()
+pga_queue = manager.Queue()
 
 
 @app.route("/")
@@ -45,6 +45,11 @@ def trace_page():
 @app.route("/event")
 def event_page():
     return render_template("event.html")
+
+
+@app.route("/dataset")
+def dataset_page():
+    return render_template("dataset.html")
 
 
 @app.route("/intensityMap")
@@ -83,9 +88,33 @@ def event_emitter():
         time.sleep(0.5)
 
 
+def dataset_emitter():
+    while True:
+        dataset_data = dataset_queue.get()
+        if not dataset_data:
+            continue
+
+        # 將資料傳送給前端
+        socketio.emit("dataset_data", dict(dataset_data))
+        time.sleep(0.5)
+
+
+def pga_emitter():
+    while True:
+        pga = pga_queue.get()
+        if not pga:
+            continue
+
+        # 將資料傳送給前端
+        socketio.emit("pga_data", pga)
+        time.sleep(0.5)
+
+
 def web_server():
     threading.Thread(target=wave_emitter).start()
     threading.Thread(target=event_emitter).start()
+    threading.Thread(target=dataset_emitter).start()
+    threading.Thread(target=pga_emitter).start()
 
     if args.web or args.host or args.port:
         # 開啟 web server
@@ -110,6 +139,7 @@ def convert_to_tsmip_legacy_naming(wave):
 def earthworm_wave_listener():
     buffer_time = 30  # 設定緩衝區保留時間
     sample_rate = 100  # 設定取樣率
+    latest_time = 0
     while True:
         if earthworm.mod_sta() is False:
             continue
@@ -120,18 +150,28 @@ def earthworm_wave_listener():
             """
             這裡並沒有去處理每個 trace 如果時間不連續的問題
             """
+
+            # 如果時間重置(tankplayer 重播)，清空 buffer
+            if latest_time > wave["startt"] + 60:
+                wave_buffer.clear()
+                time_buffer.clear()
+                print(
+                    "time reversed over 60 secs, flush wave_buffer and time_buffer")
+            latest_time = wave["endt"]
+
             try:
                 wave = convert_to_tsmip_legacy_naming(wave)
 
                 wave_id = join_id_from_dict(wave, order="NSLC")
 
-                # 將 wave_id 加入 queue 給 trace_emitter 發送至前端
+                # 將 wave_id 加入 wave_queue 給 wave_emitter 發送至前端
                 if "Z" in wave_id:
                     wave_queue.put(wave)
 
                 # add new trace to buffer
                 if wave_id not in wave_buffer.keys():
-                    wave_buffer[wave_id] = np.zeros(sample_rate * buffer_time)
+                    wave_buffer[wave_id] = np.full(sample_rate * buffer_time,
+                                                   fill_value=wave["data"][0])
                     time_buffer[wave_id] = np.append(
                         np.linspace(
                             wave["startt"] - (buffer_time - 1),
@@ -283,7 +323,7 @@ def get_vs30(pick):
         lon = float(pick["lon"])
         distance, i = tree.query([lat, lon])
         vs30 = vs30_table.iloc[i]["Vs30"]
-        return vs30
+        return float(vs30)
 
     except Exception as e:
         print("get_vs30 error", e)
@@ -315,7 +355,7 @@ def converter(event_msg, debug=False):
             for j, component in enumerate(["Z", "N", "E"]):
                 wave = data["trace"]["data"][component.lower()]
                 wave = signal_processing(wave)
-                trace.append(wave)
+                trace.append(wave.tolist())
 
             waveform.append(trace)
             station.append(get_site_info(data["pick"]))
@@ -328,7 +368,11 @@ def converter(event_msg, debug=False):
             "target": target,
             "station_name": station_name,
         }
+
+        dataset_queue.put(dataset)
+
         return dataset
+
     except Exception as e:
         print("converter error", e)
 
@@ -415,7 +459,8 @@ def model_inference(debug=False):
     進行模型預測
     """
     while True:
-        if pick_buffer:
+        # 3 個測站收到開始進行預測
+        if len(pick_buffer) >= 3:
             try:
                 start_time = time.time()
 
