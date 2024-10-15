@@ -1,11 +1,14 @@
 import argparse
-import ctypes
+import bisect
 import multiprocessing
 import threading
 import time
 
 import numpy as np
+import pandas as pd
 import PyEW
+from scipy.spatial import distance
+from scipy.signal import detrend, iirfilter, sosfilt, zpk2sos
 import torch
 from flask import Flask, render_template
 from flask_socketio import SocketIO
@@ -26,10 +29,11 @@ pick_buffer = manager.dict()
 
 event_queue = manager.Queue()
 
-
 buffer_time = 30  # 設定緩衝區保留時間
 sample_rate = 100  # 設定取樣率
 
+vs30_table = pd.read_csv(f"data/Vs30ofTaiwan.csv")
+points = vs30_table[["lon", "lat"]].values.tolist()
 
 @app.route("/")
 def index():
@@ -44,6 +48,11 @@ def trace_page():
 @app.route("/event")
 def event_page():
     return render_template("event.html")
+
+
+@app.route("/intensityMap")
+def map_page():
+    return render_template("intensityMap.html")
 
 
 @socketio.on("connect")
@@ -130,18 +139,21 @@ def earthworm_wave_listener():
                             wave["startt"],
                             sample_rate * (buffer_time - 1),
                         ),
-                        np.linspace(wave["startt"], wave["endt"], wave["data"].size),
+                        np.linspace(wave["startt"], wave["endt"],
+                                    wave["data"].size),
                     )
 
-                wave_buffer[wave_id] = np.append(wave_buffer[wave_id], wave["data"])
+                wave_buffer[wave_id] = np.append(wave_buffer[wave_id],
+                                                 wave["data"])
 
-                wave_buffer[wave_id] = wave_buffer[wave_id][wave["data"].size :]
+                wave_buffer[wave_id] = wave_buffer[wave_id][wave["data"].size:]
 
                 time_buffer[wave_id] = np.append(
                     time_buffer[wave_id],
-                    np.linspace(wave["startt"], wave["endt"], wave["data"].size),
+                    np.linspace(wave["startt"], wave["endt"],
+                                wave["data"].size),
                 )
-                time_buffer[wave_id] = time_buffer[wave_id][wave["data"].size :]
+                time_buffer[wave_id] = time_buffer[wave_id][wave["data"].size:]
 
             except Exception as e:
                 print("earthworm_wave_listener error", e)
@@ -234,6 +246,74 @@ def get_event(pick_buffer, debug=False):
     return event_data
 
 
+def signal_processing(wave):
+    # demean and lowpass filter
+    data = detrend(wave, type="constant")
+    data = lowpass(data, freq=10)
+
+    return data
+
+
+def lowpass(data, freq=10, df=100, corners=4):
+    """
+    Modified form ObsPy Signal Processing
+    https://docs.obspy.org/_modules/obspy/signal/filter.html#lowpass
+    """
+    fe = 0.5 * df
+    f = freq / fe
+
+    if f > 1:
+        f = 1.0
+    z, p, k = iirfilter(
+        corners, f, btype="lowpass", ftype="butter", output="zpk"
+    )
+
+    sos = zpk2sos(z, p, k)
+    return sosfilt(sos, data)
+
+
+def get_site_info(pick):
+    latitude = float(pick["lat"])
+    longitude = float(pick["lon"])
+    elevation = 100
+    vs30 = get_vs30(pick)
+    return [latitude, longitude, elevation, vs30]
+
+
+def get_vs30(pick):
+    target_point = [float(pick["lon"]), float(pick["lat"])]
+    nearest_index, nearest_point = find_nearest_point(target_point, points)
+    vs30 = vs30_table["Vs30"][nearest_index]
+    print("vs30:", vs30)
+    return vs30
+
+
+def find_nearest_point(target_point, points):
+    """
+    找到點集points中距離目標點target_point最近的點。
+
+    參數：
+    target_point: 目標點的坐標，一個包含兩個元素的列表或元組，例如 [x, y]。
+    points: 點集，一個包含多個點坐標的二維數組，每個點為一個包含兩個元素的列表或元組，例如 [[x1, y1], [x2, y2], ...]。
+
+    返回值：
+    nearest_point: 距離目標點最近的點的坐標，一個包含兩個元素的列表，例如 [x_nearest, y_nearest]。
+    """
+    target_point = np.array(target_point)
+    points = np.array(points)
+
+    # 使用cdist計算距離矩陣
+    distances = distance.cdist([target_point], points)
+
+    # 找到距離最小的點的索引
+    nearest_index = np.argmin(distances)
+
+    # 返回距離最小的點的坐標
+    nearest_point = points[nearest_index]
+
+    return nearest_index, nearest_point
+
+
 def converter(event_msg, debug=False):
     try:
         if debug:
@@ -246,25 +326,22 @@ def converter(event_msg, debug=False):
         for i, (pick_id, data) in enumerate(event_msg.items()):
             trace = []
             for j, component in enumerate(["Z", "N", "E"]):
-                trace.append(data["trace"]["data"][component.lower()])
+                wave = data["trace"]["data"][component.lower()]
+                wave = signal_processing(wave)
+                trace.append(wave)
 
             waveform.append(trace)
-            station.append(
-                [float(data["pick"]["lat"]), float(data["pick"]["lon"]), 100, 760]
-            )
-            target.append(
-                [float(data["pick"]["lat"]), float(data["pick"]["lon"]), 100, 760]
-            )
-
+            station.append(get_site_info(data["pick"]))
+            target.append(get_site_info(data["pick"]))
             station_name.append(data["pick"]["station"])
 
-        output = {
+        dataset = {
             "waveform": waveform,
             "station": station,
             "target": target,
             "station_name": station_name,
         }
-        return output
+        return dataset
     except Exception as e:
         print("converter error", e)
 
@@ -298,20 +375,19 @@ def reorder_array(data):
         print("reorder_array error", e)
 
 
-def ttsam_model_predict(data, debug=False):
+def ttsam_model_predict(dataset, debug=False):
     model_path = f"model/ttsam_trained_model_11.pt"
     full_model = get_full_model(model_path)
-
+    data = reorder_array(dataset)
     weight, sigma, mu = full_model(data)
-    if debug:
-        print(f"weight: {weight}")
-        print(f"sigma: {sigma}")
-        print(f"mu: {mu}")
 
-    return weight, sigma, mu
+    pga_list = torch.sum(weight * mu, dim=2).cpu().detach().numpy().flatten()
+    pga_list = pga_list[:len(dataset['station_name'])]
+
+    return pga_list
 
 
-def inference_trigger(debug=False):
+def model_inference(debug=False):
     """
     進行模型預測
     """
@@ -319,17 +395,52 @@ def inference_trigger(debug=False):
         if pick_buffer:
             try:
                 event_data = get_event(pick_buffer)
-
-                output = converter(event_data)
-
-                data = reorder_array(output)
-
-                weight, sigma, mu = ttsam_model_predict(data)
+                dataset = converter(event_data)
+                pga_list = ttsam_model_predict(dataset)
+                intensity = [TaiwanIntensity().calculate(pga, label=True) for
+                             pga in pga_list]
+                print("intensity:", intensity)
 
             except Exception as e:
                 print("inference_trigger error", e)
 
         time.sleep(0.5)
+
+
+class TaiwanIntensity:
+    label = ["0", "1", "2", "3", "4", "5-", "5+", "6-", "6+", "7"]
+    pga = np.log10(
+        [1e-5, 0.008, 0.025, 0.080, 0.250, 0.80, 1.4, 2.5, 4.4, 8.0]
+    )  # log10(m/s^2)
+    pgv = np.log10(
+        [1e-5, 0.002, 0.007, 0.019, 0.057, 0.15, 0.3, 0.5, 0.8, 1.4]
+    )  # log10(m/s)
+
+    def __init__(self):
+        self.pga_ticks = self.get_ticks(self.pga)
+        self.pgv_ticks = self.get_ticks(self.pgv)
+
+    def calculate(self, pga, pgv=None, label=False):
+        pga_intensity = bisect.bisect(self.pga, pga) - 1
+        intensity = pga_intensity
+
+        if pga > self.pga[5] and pgv is not None:
+            pgv_intensity = bisect.bisect(self.pgv, pgv) - 1
+            if pgv_intensity > pga_intensity:
+                intensity = pgv_intensity
+
+        if label:
+            return self.label[intensity]
+        else:
+            return intensity
+
+    @staticmethod
+    def get_ticks(array):
+        ticks = np.cumsum(array, dtype=float)
+        ticks[2:] = ticks[2:] - ticks[:-2]
+        ticks = ticks[1:] / 2
+        ticks = np.append(ticks, (ticks[-1] * 2 - ticks[-2]))
+        return ticks
 
 
 if __name__ == "__main__":
@@ -350,7 +461,7 @@ if __name__ == "__main__":
     functions = [
         earthworm_wave_listener,
         earthworm_pick_listener,
-        inference_trigger,
+        model_inference,
         web_server,
     ]
 
