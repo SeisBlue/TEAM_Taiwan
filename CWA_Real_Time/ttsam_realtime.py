@@ -7,11 +7,11 @@ import time
 import numpy as np
 import pandas as pd
 import PyEW
-from scipy.spatial import distance
-from scipy.signal import detrend, iirfilter, sosfilt, zpk2sos
 import torch
 from flask import Flask, render_template
 from flask_socketio import SocketIO
+from scipy.signal import detrend, iirfilter, sosfilt, zpk2sos
+from scipy.spatial import cKDTree
 
 from model.ttsam_model import get_full_model
 
@@ -29,11 +29,8 @@ pick_buffer = manager.dict()
 
 event_queue = manager.Queue()
 
-buffer_time = 30  # 設定緩衝區保留時間
-sample_rate = 100  # 設定取樣率
 
-vs30_table = pd.read_csv(f"data/Vs30ofTaiwan.csv")
-points = vs30_table[["lon", "lat"]].values.tolist()
+
 
 @app.route("/")
 def index():
@@ -58,16 +55,6 @@ def map_page():
 @socketio.on("connect")
 def connect_earthworm():
     socketio.emit("connect_init")
-
-
-def web_server():
-    threading.Thread(target=wave_emitter).start()
-    threading.Thread(target=event_emitter).start()
-
-    if args.web or args.host or args.port:
-        # 開啟 web server
-        app.run(host=args.host, port=args.port, use_reloader=False)
-        socketio.run(app, debug=True)
 
 
 def wave_emitter():
@@ -96,6 +83,16 @@ def event_emitter():
         time.sleep(0.5)
 
 
+def web_server():
+    threading.Thread(target=wave_emitter).start()
+    threading.Thread(target=event_emitter).start()
+
+    if args.web or args.host or args.port:
+        # 開啟 web server
+        app.run(host=args.host, port=args.port, use_reloader=False)
+        socketio.run(app, debug=True)
+
+
 def join_id_from_dict(data, order="NSLC"):
     code = {"N": "network", "S": "station", "L": "location", "C": "channel"}
     data_id = ".".join(data[code[letter]] for letter in order)
@@ -111,6 +108,8 @@ def convert_to_tsmip_legacy_naming(wave):
 
 
 def earthworm_wave_listener():
+    buffer_time = 30  # 設定緩衝區保留時間
+    sample_rate = 100  # 設定取樣率
     while True:
         if earthworm.mod_sta() is False:
             continue
@@ -160,6 +159,34 @@ def earthworm_wave_listener():
         time.sleep(0.000001)
 
 
+def parse_pick_msg(pick_msg):
+    pick_msg_column = pick_msg.split()
+    try:
+        pick = {
+            "station": pick_msg_column[0],
+            "channel": pick_msg_column[1],
+            "network": pick_msg_column[2],
+            "location": pick_msg_column[3],
+            "lon": pick_msg_column[4],
+            "lat": pick_msg_column[5],
+            "pga": pick_msg_column[6],
+            "pgv": pick_msg_column[7],
+            "pd": pick_msg_column[8],
+            "tc": pick_msg_column[9],  # Average period
+            "pick_time": pick_msg_column[10],
+            "weight": pick_msg_column[11],  # 0:best 5:worst
+            "instrument": pick_msg_column[12],  # 1:Acc 2:Vel
+            "update_sec": pick_msg_column[13],  # sec after pick
+        }
+
+        pick["pickid"] = join_id_from_dict(pick, order="NSLC")
+
+        return pick
+
+    except IndexError:
+        print("pick_msg parsing error:", pick_msg)
+
+
 def earthworm_pick_listener(debug=False):
     """
     監看 pick ring 的訊息，並保存活著的 pick msg
@@ -188,34 +215,6 @@ def earthworm_pick_listener(debug=False):
                 continue
 
         time.sleep(0.001)
-
-
-def parse_pick_msg(pick_msg):
-    pick_msg_column = pick_msg.split()
-    try:
-        pick = {
-            "station": pick_msg_column[0],
-            "channel": pick_msg_column[1],
-            "network": pick_msg_column[2],
-            "location": pick_msg_column[3],
-            "lon": pick_msg_column[4],
-            "lat": pick_msg_column[5],
-            "pga": pick_msg_column[6],
-            "pgv": pick_msg_column[7],
-            "pd": pick_msg_column[8],
-            "tc": pick_msg_column[9],  # Average period
-            "pick_time": pick_msg_column[10],
-            "weight": pick_msg_column[11],  # 0:best 5:worst
-            "instrument": pick_msg_column[12],  # 1:Acc 2:Vel
-            "update_sec": pick_msg_column[13],  # sec after pick
-        }
-
-        pick["pickid"] = join_id_from_dict(pick, order="NSLC")
-
-        return pick
-
-    except IndexError:
-        print("pick_msg parsing error:", pick_msg)
 
 
 def get_event(pick_buffer, debug=False):
@@ -247,11 +246,14 @@ def get_event(pick_buffer, debug=False):
 
 
 def signal_processing(wave):
-    # demean and lowpass filter
-    data = detrend(wave, type="constant")
-    data = lowpass(data, freq=10)
+    try:
+        # demean and lowpass filter
+        data = detrend(wave, type="constant")
+        data = lowpass(data, freq=10)
+        return data
 
-    return data
+    except Exception as e:
+        print("signal_processing error", e)
 
 
 def lowpass(data, freq=10, df=100, corners=4):
@@ -264,54 +266,39 @@ def lowpass(data, freq=10, df=100, corners=4):
 
     if f > 1:
         f = 1.0
-    z, p, k = iirfilter(
-        corners, f, btype="lowpass", ftype="butter", output="zpk"
-    )
+    z, p, k = iirfilter(corners, f, btype="lowpass", ftype="butter",
+                        output="zpk")
 
     sos = zpk2sos(z, p, k)
     return sosfilt(sos, data)
 
 
-def get_site_info(pick):
-    latitude = float(pick["lat"])
-    longitude = float(pick["lon"])
-    elevation = 100
-    vs30 = get_vs30(pick)
-    return [latitude, longitude, elevation, vs30]
+vs30_table = pd.read_csv(f"data/Vs30ofTaiwan.csv")
+tree = cKDTree(vs30_table[["lat", "lon"]])
 
 
 def get_vs30(pick):
-    target_point = [float(pick["lon"]), float(pick["lat"])]
-    nearest_index, nearest_point = find_nearest_point(target_point, points)
-    vs30 = vs30_table["Vs30"][nearest_index]
-    print("vs30:", vs30)
-    return vs30
+    try:
+        lat = float(pick["lat"])
+        lon = float(pick["lon"])
+        distance, i = tree.query([lat, lon])
+        vs30 = vs30_table.iloc[i]["Vs30"]
+        return vs30
+
+    except Exception as e:
+        print("get_vs30 error", e)
 
 
-def find_nearest_point(target_point, points):
-    """
-    找到點集points中距離目標點target_point最近的點。
+def get_site_info(pick):
+    try:
+        latitude = float(pick["lat"])
+        longitude = float(pick["lon"])
+        elevation = 100
+        vs30 = get_vs30(pick)
+        return [latitude, longitude, elevation, vs30]
 
-    參數：
-    target_point: 目標點的坐標，一個包含兩個元素的列表或元組，例如 [x, y]。
-    points: 點集，一個包含多個點坐標的二維數組，每個點為一個包含兩個元素的列表或元組，例如 [[x1, y1], [x2, y2], ...]。
-
-    返回值：
-    nearest_point: 距離目標點最近的點的坐標，一個包含兩個元素的列表，例如 [x_nearest, y_nearest]。
-    """
-    target_point = np.array(target_point)
-    points = np.array(points)
-
-    # 使用cdist計算距離矩陣
-    distances = distance.cdist([target_point], points)
-
-    # 找到距離最小的點的索引
-    nearest_index = np.argmin(distances)
-
-    # 返回距離最小的點的坐標
-    nearest_point = points[nearest_index]
-
-    return nearest_index, nearest_point
+    except Exception as e:
+        print("get_site_info error", e)
 
 
 def converter(event_msg, debug=False):
@@ -382,29 +369,9 @@ def ttsam_model_predict(dataset, debug=False):
     weight, sigma, mu = full_model(data)
 
     pga_list = torch.sum(weight * mu, dim=2).cpu().detach().numpy().flatten()
-    pga_list = pga_list[:len(dataset['station_name'])]
+    pga_list = pga_list[: len(dataset["station_name"])]
 
     return pga_list
-
-
-def model_inference(debug=False):
-    """
-    進行模型預測
-    """
-    while True:
-        if pick_buffer:
-            try:
-                event_data = get_event(pick_buffer)
-                dataset = converter(event_data)
-                pga_list = ttsam_model_predict(dataset)
-                intensity = [TaiwanIntensity().calculate(pga, label=True) for
-                             pga in pga_list]
-                print("intensity:", intensity)
-
-            except Exception as e:
-                print("inference_trigger error", e)
-
-        time.sleep(0.5)
 
 
 class TaiwanIntensity:
@@ -441,6 +408,33 @@ class TaiwanIntensity:
         ticks = ticks[1:] / 2
         ticks = np.append(ticks, (ticks[-1] * 2 - ticks[-2]))
         return ticks
+
+
+def model_inference(debug=False):
+    """
+    進行模型預測
+    """
+    while True:
+        if pick_buffer:
+            try:
+                start_time = time.time()
+
+                event_data = get_event(pick_buffer)
+                dataset = converter(event_data)
+                pga_list = ttsam_model_predict(dataset)
+                intensity = [
+                    TaiwanIntensity().calculate(pga, label=True) for pga in
+                    pga_list
+                ]
+                print("intensity:", intensity)
+
+                end_time = time.time()
+                print("model_inference time:", end_time - start_time)
+
+            except Exception as e:
+                print("inference_trigger error", e)
+
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
