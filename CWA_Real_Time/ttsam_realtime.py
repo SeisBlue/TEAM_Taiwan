@@ -29,7 +29,6 @@ pick_buffer = manager.dict()
 
 event_queue = manager.Queue()
 dataset_queue = manager.Queue()
-pga_queue = manager.Queue()
 
 
 @app.route("/")
@@ -85,7 +84,6 @@ def event_emitter():
 
         # 將資料傳送給前端
         socketio.emit("event_data", event_data)
-        time.sleep(0.5)
 
 
 def dataset_emitter():
@@ -95,26 +93,13 @@ def dataset_emitter():
             continue
 
         # 將資料傳送給前端
-        socketio.emit("dataset_data", dict(dataset_data))
-        time.sleep(0.5)
-
-
-def pga_emitter():
-    while True:
-        pga = pga_queue.get()
-        if not pga:
-            continue
-
-        # 將資料傳送給前端
-        socketio.emit("pga_data", pga)
-        time.sleep(0.5)
+        socketio.emit("dataset_data", dataset_data)
 
 
 def web_server():
     threading.Thread(target=wave_emitter).start()
     threading.Thread(target=event_emitter).start()
     threading.Thread(target=dataset_emitter).start()
-    threading.Thread(target=pga_emitter).start()
 
     if args.web or args.host or args.port:
         # 開啟 web server
@@ -136,6 +121,28 @@ def convert_to_tsmip_legacy_naming(wave):
     return wave
 
 
+def get_wave_constant(wave):
+    # count to cm/s^2
+    wave_constant = site_info.loc[
+        (site_info["Station"] == wave["station"])
+        & (site_info["Channel"] == wave["channel"]),
+        "Constant",
+    ].values[0]
+    if not wave_constant:
+        wave_constant = 3.2e-6
+    return wave_constant
+
+
+site_info = pd.read_csv("data/site_info.txt", sep="\s+")
+
+
+def get_station_position(station):
+    latitude, longitude, elevation = site_info.loc[
+        (site_info["Station"] == station), ["Latitude", "Longitude", "Elevation"]
+    ].values[0]
+    return latitude, longitude, elevation
+
+
 def earthworm_wave_listener():
     buffer_time = 30  # 設定緩衝區保留時間
     sample_rate = 100  # 設定取樣率
@@ -155,8 +162,7 @@ def earthworm_wave_listener():
             if latest_time > wave["startt"] + 60:
                 wave_buffer.clear()
                 time_buffer.clear()
-                print(
-                    "time reversed over 60 secs, flush wave_buffer and time_buffer")
+                print("time reversed over 60 secs, flush wave_buffer and time_buffer")
             latest_time = wave["endt"]
 
             try:
@@ -164,35 +170,37 @@ def earthworm_wave_listener():
 
                 wave_id = join_id_from_dict(wave, order="NSLC")
 
+                wave["data"] = wave["data"] * get_wave_constant(wave)
+
                 # 將 wave_id 加入 wave_queue 給 wave_emitter 發送至前端
                 if "Z" in wave_id:
                     wave_queue.put(wave)
 
                 # add new trace to buffer
                 if wave_id not in wave_buffer.keys():
-                    wave_buffer[wave_id] = np.full(sample_rate * buffer_time,
-                                                   fill_value=wave["data"][0])
+                    # wave_buffer 初始化時全部填入 wave 的平均值，確保 demean 時不會被斷點影響
+                    wave_buffer[wave_id] = np.full(
+                        sample_rate * buffer_time,
+                        fill_value=np.array(wave["data"]).mean(),
+                    )
                     time_buffer[wave_id] = np.append(
                         np.linspace(
                             wave["startt"] - (buffer_time - 1),
                             wave["startt"],
                             sample_rate * (buffer_time - 1),
                         ),
-                        np.linspace(wave["startt"], wave["endt"],
-                                    wave["data"].size),
+                        np.linspace(wave["startt"], wave["endt"], wave["data"].size),
                     )
 
-                wave_buffer[wave_id] = np.append(wave_buffer[wave_id],
-                                                 wave["data"])
+                wave_buffer[wave_id] = np.append(wave_buffer[wave_id], wave["data"])
 
-                wave_buffer[wave_id] = wave_buffer[wave_id][wave["data"].size:]
+                wave_buffer[wave_id] = wave_buffer[wave_id][wave["data"].size :]
 
                 time_buffer[wave_id] = np.append(
                     time_buffer[wave_id],
-                    np.linspace(wave["startt"], wave["endt"],
-                                wave["data"].size),
+                    np.linspace(wave["startt"], wave["endt"], wave["data"].size),
                 )
-                time_buffer[wave_id] = time_buffer[wave_id][wave["data"].size:]
+                time_buffer[wave_id] = time_buffer[wave_id][wave["data"].size :]
 
             except Exception as e:
                 print("earthworm_wave_listener error", e)
@@ -257,7 +265,7 @@ def earthworm_pick_listener(debug=False):
         time.sleep(0.001)
 
 
-def get_event(pick_buffer, debug=False):
+def event_cutter(pick_buffer, debug=False):
     event_data = {}
     # pick 只有 Z 軸
     for pick_id, pick in pick_buffer.items():
@@ -269,8 +277,14 @@ def get_event(pick_buffer, debug=False):
         data = {}
         # 找到 wave_buffer 內的三軸資料
         for i, component in enumerate(["Z", "N", "E"]):
-            wave_id = f"{network}.{station}.{location}.{channel[0:2]}{component}"
-            data[component.lower()] = wave_buffer[wave_id].tolist()
+            try:
+                wave_id = f"{network}.{station}.{location}.{channel[0:2]}{component}"
+                data[component.lower()] = wave_buffer[wave_id].tolist()
+            except KeyError:
+                print(f"{wave_id} {component} not found, add zero array")
+                wave_id = f"{network}.{station}.{location}.{channel[0:2]}Z"
+                data[component.lower()] = np.zeros(3000).tolist()
+                continue
 
         trace_dict = {
             "traceid": pick_id,
@@ -285,15 +299,15 @@ def get_event(pick_buffer, debug=False):
     return event_data
 
 
-def signal_processing(wave):
+def signal_processing(waveform):
     try:
         # demean and lowpass filter
-        data = detrend(wave, type="constant")
+        data = detrend(waveform, type="constant")
         data = lowpass(data, freq=10)
         return data
 
     except Exception as e:
-        print("signal_processing error", e)
+        print("signal_processing error:", e)
 
 
 def lowpass(data, freq=10, df=100, corners=4):
@@ -306,22 +320,22 @@ def lowpass(data, freq=10, df=100, corners=4):
 
     if f > 1:
         f = 1.0
-    z, p, k = iirfilter(corners, f, btype="lowpass", ftype="butter",
-                        output="zpk")
+    z, p, k = iirfilter(corners, f, btype="lowpass", ftype="butter", output="zpk")
 
     sos = zpk2sos(z, p, k)
     return sosfilt(sos, data)
 
 
-vs30_table = pd.read_csv(f"data/Vs30ofTaiwan.csv")
-tree = cKDTree(vs30_table[["lat", "lon"]])
+try:
+    vs30_table = pd.read_csv(f"data/Vs30ofTaiwan.csv")
+    tree = cKDTree(vs30_table[["lat", "lon"]])
+except FileNotFoundError:
+    print("Vs30ofTaiwan.csv not found")
 
 
-def get_vs30(pick):
+def get_vs30(lat, lon):
     try:
-        lat = float(pick["lat"])
-        lon = float(pick["lon"])
-        distance, i = tree.query([lat, lon])
+        distance, i = tree.query([float(lat), float(lon)])
         vs30 = vs30_table.iloc[i]["Vs30"]
         return float(vs30)
 
@@ -331,91 +345,115 @@ def get_vs30(pick):
 
 def get_site_info(pick):
     try:
-        latitude = float(pick["lat"])
-        longitude = float(pick["lon"])
-        elevation = 100
-        vs30 = get_vs30(pick)
+
+        latitude, longitude, elevation = get_station_position(pick["station"])
+        vs30 = get_vs30(latitude, longitude)
         return [latitude, longitude, elevation, vs30]
 
     except Exception as e:
-        print("get_site_info error", e)
+        print("get_site_info error:", e)
 
 
-def converter(event_msg, debug=False):
+def get_target(dataset, target_file="data/eew_target.txt"):
+    target_df = pd.read_csv(target_file, sep=",")
+
+    target_list = []
+    target_name_list = []
+    target_dict = target_df.to_dict(orient="records")
+    for i, target in enumerate(target_dict):
+        latitude = target["latitude"]
+        longitude = target["longitude"]
+        elevation = target["elevation"]
+        target_list.append(
+            [latitude, longitude, elevation, get_vs30(latitude, longitude)]
+        )
+        target_name_list.append(target["station"])
+
+    dataset["target"] = target_list
+    dataset["target_name"] = target_name_list
+
+    return dataset
+
+
+def convert_dataset(event_msg, debug=False):
     try:
         if debug:
-            print("get trigger:", event_msg.keys())
+            print("get event:", event_msg.keys())
 
-        waveform = []
-        station = []
-        target = []
-        station_name = []
+        waveform_list = []
+        station_list = []
+        station_name_list = []
+
         for i, (pick_id, data) in enumerate(event_msg.items()):
             trace = []
             for j, component in enumerate(["Z", "N", "E"]):
-                wave = data["trace"]["data"][component.lower()]
-                wave = signal_processing(wave)
-                trace.append(wave.tolist())
+                waveform = data["trace"]["data"][component.lower()]
+                waveform = signal_processing(waveform)
+                trace.append(waveform.tolist())
 
-            waveform.append(trace)
-            station.append(get_site_info(data["pick"]))
-            target.append(get_site_info(data["pick"]))
-            station_name.append(data["pick"]["station"])
+            waveform_list.append(trace)
+            station_list.append(get_site_info(data["pick"]))
+            station_name_list.append(data["pick"]["station"])
 
         dataset = {
-            "waveform": waveform,
-            "station": station,
-            "target": target,
-            "station_name": station_name,
+            "waveform": waveform_list,
+            "station": station_list,
+            "station_name": station_name_list,
         }
-
-        dataset_queue.put(dataset)
 
         return dataset
 
     except Exception as e:
-        print("converter error", e)
+        print("converter error:", e)
 
 
-def reorder_array(data):
+def convert_torch_tensor(dataset):
     try:
-        wave = np.array(data["waveform"])
+        station_limit = min(len(dataset["waveform"]), 25)
+        target_limit = min(len(dataset["target"]), 25)
+
+        wave = np.array(dataset["waveform"])
         wave_transposed = wave.transpose(0, 2, 1)
-        data_limit = min(len(data["waveform"]), 25)
 
         waveform = np.zeros((25, 3000, 3))
         station = np.zeros((25, 4))
         target = np.zeros((25, 4))
 
         # 取前 25 筆資料，不足的話補 0
-        waveform[:data_limit] = wave_transposed[:data_limit]
-        station[:data_limit] = data["station"][:data_limit]
-        target[:data_limit] = data["target"][:data_limit]
+        waveform[:station_limit] = wave_transposed[:station_limit]
+        station[:station_limit] = dataset["station"][:station_limit]
+        target[:target_limit] = dataset["target"][:target_limit]
 
         input_waveform = torch.tensor(waveform).to(torch.double).unsqueeze(0)
         input_station = torch.tensor(station).to(torch.double).unsqueeze(0)
         target_station = torch.tensor(target).to(torch.double).unsqueeze(0)
-        sample = {
+        tensor = {
             "waveform": input_waveform,
             "station": input_station,
+            "station_name": dataset["station_name"][:station_limit],
             "target": target_station,
-            "station_name": data["station_name"],
+            "target_name": dataset["target_name"][:target_limit],
         }
-        return sample
+        return tensor
     except Exception as e:
-        print("reorder_array error", e)
+        print("reorder_array error:", e)
 
 
 def ttsam_model_predict(dataset, debug=False):
-    model_path = f"model/ttsam_trained_model_11.pt"
-    full_model = get_full_model(model_path)
-    data = reorder_array(dataset)
-    weight, sigma, mu = full_model(data)
+    try:
+        model_path = f"model/ttsam_trained_model_11.pt"
+        full_model = get_full_model(model_path)
+        tensor = convert_torch_tensor(dataset)
+        weight, sigma, mu = full_model(tensor)
 
-    pga_list = torch.sum(weight * mu, dim=2).cpu().detach().numpy().flatten()
-    pga_list = pga_list[: len(dataset["station_name"])]
+        pga_list = torch.sum(weight * mu, dim=2).cpu().detach().numpy().flatten()
+        pga_list = pga_list[: len(tensor["target_name"])]
 
-    return pga_list
+        dataset["pga"] = pga_list.tolist()
+
+        return dataset
+    except Exception as e:
+        print("ttsam_model_predict error:", e)
 
 
 class TaiwanIntensity:
@@ -464,20 +502,28 @@ def model_inference(debug=False):
             try:
                 start_time = time.time()
 
-                event_data = get_event(pick_buffer)
-                dataset = converter(event_data)
-                pga_list = ttsam_model_predict(dataset)
-                intensity = [
-                    TaiwanIntensity().calculate(pga, label=True) for pga in
-                    pga_list
-                ]
-                print("intensity:", intensity)
+                event_data = event_cutter(pick_buffer)
+                dataset = convert_dataset(event_data)
+                dataset = get_target(dataset)
+                dataset = ttsam_model_predict(dataset)
 
+                dataset["intensity"] = [
+                    TaiwanIntensity().calculate(pga, label=True)
+                    for pga in dataset["pga"]
+                ]
+                report = []
+                for i, intensity in enumerate(dataset["intensity"]):
+                    report.append(f"{dataset['target_name'][i]}: {intensity}")
+
+                print(report)
+
+                # 資料傳至前端
+                dataset_queue.put(dataset)
                 end_time = time.time()
                 print("model_inference time:", end_time - start_time)
 
             except Exception as e:
-                print("inference_trigger error", e)
+                print("model_inference error:", e)
 
         time.sleep(0.5)
 
