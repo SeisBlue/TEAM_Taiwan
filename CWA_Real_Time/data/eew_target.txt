@@ -1,4 +1,4 @@
-測網代碼,測站代碼,參考地點,參考經度,參考緯度,參考高度
+network,station,station_zh,longitude,latitude,elevation
 CWB_SMT,TAP,臺北地震站,121.514,25.038,16
 TSMIP,A024,板橋地震站,121.475,25.019,14
 CWASN,NTS,淡水地震站,121.449,25.164,15
